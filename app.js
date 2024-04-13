@@ -357,7 +357,61 @@ class Reticle extends THREE.Mesh {
     }
 }
 
+function placeVoxelArtAtReticle(reticle, scene, world) {
+    // Assume cell coordinates define which part of the voxel world to render
+    const cellX = 0;
+    const cellY = 0;
+    const cellZ = 0;
 
+    // Generate geometry data from voxel world
+    const {positions, normals, colors, indices} = world.generateGeometryDataForCell(cellX, cellY, cellZ);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+    geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3));
+    geometry.setIndex(indices);
+    geometry.computeBoundingBox();
+
+    // Create a mesh with the geometry
+    const material = new THREE.MeshLambertMaterial({
+        vertexColors: true,
+        side: THREE.DoubleSide
+    });
+    const voxelMesh = new THREE.Mesh(geometry, material);
+
+    // Scale the mesh to make it smaller or larger
+    const scaleFactor = 0.01; // Adjust this value to scale the voxel art appropriately
+    voxelMesh.scale.set(scaleFactor, scaleFactor, scaleFactor);
+
+    // Now we adjust the position based on the scaled bounding box
+    const scaledHeightOffset = scaleFactor * -geometry.boundingBox.min.y; // Adjust for bottom of the box
+    const scaledXOffset = scaleFactor * -0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x); // Center X
+    const scaledZOffset = scaleFactor * -0.5 * (geometry.boundingBox.max.z - geometry.boundingBox.min.z); // Center Z
+
+    voxelMesh.position.setFromMatrixPosition(reticle.matrix);
+    voxelMesh.position.y += scaledHeightOffset;
+    voxelMesh.position.x += scaledXOffset;
+    voxelMesh.position.z += scaledZOffset;
+
+    // Apply rotation to align with the world, if necessary
+    voxelMesh.quaternion.setFromRotationMatrix(reticle.matrix);
+
+    scene.add(voxelMesh);
+}
+
+
+
+
+function clearScene(scene) {
+    const preservedObjects = new Set(['Light', 'DirectionalLight', 'AmbientLight', 'Reticle']);
+    
+    for (let i = scene.children.length - 1; i >= 0; i--) {
+        const obj = scene.children[i];
+        if (!preservedObjects.has(obj.constructor.name)) {
+            scene.remove(obj);
+        }
+    }
+}
 
 async function setupARButton(renderer, scene, camera) {
     const arButton = ARButton.createButton(renderer, {
@@ -367,15 +421,17 @@ async function setupARButton(renderer, scene, camera) {
 
     renderer.xr.addEventListener('sessionstart', async () => {
         const session = renderer.xr.getSession();
-
+        
+        // Clear previous objects, except essential ones like lights or UI elements
+        clearScene(scene);
+    
         const reticle = new Reticle();
         scene.add(reticle);
-        let cubePlaced = false;  // Flag to check if a cube has been placed
-
-        // Prepare reference spaces for hit testing
+        let objectPlaced = false;
+    
         const viewerSpace = await session.requestReferenceSpace('viewer');
         const hitTestSource = await session.requestHitTestSource({ space: viewerSpace });
-
+    
         renderer.setAnimationLoop(() => {
             const frame = renderer.xr.getFrame();
             if (frame) {
@@ -384,8 +440,7 @@ async function setupARButton(renderer, scene, camera) {
                     const hit = hitTestResults[0];
                     const pose = hit.getPose(renderer.xr.getReferenceSpace());
                     if (pose) {
-                        // Only display reticle if no cube has been placed
-                        reticle.visible = !cubePlaced;
+                        reticle.visible = !objectPlaced;
                         reticle.matrix.fromArray(pose.transform.matrix);
                     }
                 } else {
@@ -394,25 +449,19 @@ async function setupARButton(renderer, scene, camera) {
             }
             renderer.render(scene, camera);
         });
-
+    
         session.addEventListener('select', () => {
-            if (reticle.visible && !cubePlaced) {
-                // Create a cube and add it where the reticle is
-                const geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1); // Size of the cube
-                const material = new THREE.MeshStandardMaterial({color: 0x00FF00}); // Color of the cube
-                const cube = new THREE.Mesh(geometry, material);
-                cube.position.setFromMatrixPosition(reticle.matrix);
-                scene.add(cube);
-
-                // Update flag and hide the reticle
-                cubePlaced = true;
+            if (reticle.visible && !objectPlaced) {
+                placeVoxelArtAtReticle(reticle, scene, world);
+                objectPlaced = true;
                 reticle.visible = false;
             }
         });
     });
-
+    
     renderer.xr.addEventListener('sessionend', () => {
         renderer.setAnimationLoop(null);
+        clearScene(scene);  // Optionally clear the scene on session end if needed
     });
 }
 
