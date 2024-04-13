@@ -261,6 +261,23 @@ class VoxelWorld {
 
     }
 
+    serialize() {
+        const cells = Object.entries(this.cells).map(([key, value]) => ({
+            key,
+            value: Array.from(value)
+        }));
+        return JSON.stringify({ cellSize: this.cellSize, cells });
+    }
+
+    deserialize(data) {
+        const parsed = JSON.parse(data);
+        this.cellSize = parsed.cellSize;
+        this.cells = parsed.cells.reduce((acc, { key, value }) => {
+            acc[key] = new Uint8Array(value);
+            return acc;
+        }, {});
+    }
+
 }
 
 VoxelWorld.faces = [{ // left
@@ -319,6 +336,7 @@ VoxelWorld.faces = [{ // left
 },
 ];
 
+let world;
 
 function main() {
 
@@ -358,7 +376,7 @@ function main() {
     addLight(-1, 2, 4);
     addLight(1, -1, -2);
 
-    const world = new VoxelWorld({
+    world = new VoxelWorld({
         cellSize
     });
 
@@ -432,13 +450,34 @@ function main() {
 
     }
 
-    for (let z = 0; z < cellSize; ++z) {
-        for (let x = 0; x < cellSize; ++x) {
-            world.setVoxel(x, 0, z, 1);
+    function initializeWorld() {
+        if (location.hash) {
+            const hashData = location.hash.substring(1); // remove '#'
+            try {
+                const compressedData = atob(decodeURIComponent(hashData));
+                const data = pako.inflate(compressedData, { to: 'string' });
+                world.deserialize(data);
+                Object.keys(world.cells).forEach(cellId => {
+                    const [x, y, z] = cellId.split(',').map(Number);
+                    updateCellGeometry(x * world.cellSize, y * world.cellSize, z * world.cellSize);
+                });
+                console.log("World loaded from URL hash.");
+                return;
+            } catch (e) {
+                console.error("Failed to load world from hash", e);
+            }
         }
+
+        // Default initialization if no hash data or on error
+        for (let z = 0; z < cellSize; ++z) {
+            for (let x = 0; x < cellSize; ++x) {
+                world.setVoxel(x, 0, z, 1);
+            }
+        }
+        updateVoxelGeometry(1, 1, 1);
     }
 
-    updateVoxelGeometry(1, 1, 1);
+    initializeWorld();
 
     function resizeRendererToDisplaySize(renderer) {
 
@@ -613,5 +652,40 @@ function main() {
     window.addEventListener('resize', requestRenderIfNotRequested);
 
 }
+
+function exportWorldToBase64() {
+    if (!world) {
+        console.error("World is not initialized.");
+        return;
+    }
+    const data = world.serialize();
+    const compressedData = pako.deflate(data, { to: 'string' });
+    const encodedData = encodeURIComponent(btoa(compressedData));
+    const url = `${location.origin}${location.pathname}#${encodedData}`;
+    QRCode.toCanvas(document.getElementById('qrCanvas'), url, function (error) {
+        if (error) {
+            console.error("QR Code Error: ", error);
+        } else {
+            console.log('QR code successfully generated!');
+            // Show the modal
+            document.getElementById('qrModal').style.display = 'block';
+        }
+    });
+}
+window.exportWorldToBase64 = exportWorldToBase64;
+
+// Add close functionality to modal
+document.querySelector('.close').addEventListener('click', function () {
+    document.getElementById('qrModal').style.display = 'none';
+});
+
+// Close modal if outside click
+window.onclick = function (event) {
+    if (event.target == document.getElementById('qrModal')) {
+        document.getElementById('qrModal').style.display = 'none';
+    }
+}
+
+
 
 main();

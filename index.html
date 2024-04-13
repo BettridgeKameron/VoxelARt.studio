@@ -1,32 +1,43 @@
 <canvas id="c"></canvas>
 <div id="ui">
     <div class="tiles">
-        <input type="radio" name="voxel" id="voxel0" value="0">
-        <label for="voxel0"></label>
-        <input type="radio" name="voxel" id="voxel1" value="1">
-        <label for="voxel1" style="background-color: #ffffff;"></label>
-        <input type="radio" name="voxel" id="voxel2" value="2">
-        <label for="voxel2" style="background-color: #000000;"></label>
-        <input type="radio" name="voxel" id="voxel3" value="3">
-        <label for="voxel3" style="background-color: #ff0000;"></label>
-        <input type="radio" name="voxel" id="voxel4" value="4">
-        <label for="voxel4" style="background-color: #ff5500;"></label>
-        <input type="radio" name="voxel" id="voxel5" value="5">
-        <label for="voxel5" style="background-color: #ffaa00;"></label>
-        <input type="radio" name="voxel" id="voxel6" value="6">
-        <label for="voxel6" style="background-color: #ffff00;"></label>
-        <input type="radio" name="voxel" id="voxel7" value="7">
-        <label for="voxel7" style="background-color: #00ff00;"></label>
-        <input type="radio" name="voxel" id="voxel8" value="8">
-        <label for="voxel8" style="background-color: #00ffff;"></label>
-        <input type="radio" name="voxel" id="voxel9" value="9">
-        <label for="voxel9" style="background-color: #0055ff;"></label>
-        <input type="radio" name="voxel" id="voxel10" value="10">
-        <label for="voxel10" style="background-color: #0000ff;"></label>
-        <input type="radio" name="voxel" id="voxel11" value="11">
-        <label for="voxel11" style="background-color: #ff00ff;"></label>
+        <input type="radio" name="voxel" id="voxel0" value="0"><label for="voxel0"></label>
+        <input type="radio" name="voxel" id="voxel1" value="1"><label for="voxel1"
+            style="background-color: #ffffff;"></label>
+        <input type="radio" name="voxel" id="voxel2" value="2"><label for="voxel2"
+            style="background-color: #000000;"></label>
+        <input type="radio" name="voxel" id="voxel3" value="3"><label for="voxel3"
+            style="background-color: #ff0000;"></label>
+        <input type="radio" name="voxel" id="voxel4" value="4"><label for="voxel4"
+            style="background-color: #ff5500;"></label>
+        <input type="radio" name="voxel" id="voxel5" value="5"><label for="voxel5"
+            style="background-color: #ffaa00;"></label>
+        <input type="radio" name="voxel" id="voxel6" value="6"><label for="voxel6"
+            style="background-color: #ffff00;"></label>
+        <input type="radio" name="voxel" id="voxel7" value="7"><label for="voxel7"
+            style="background-color: #00ff00;"></label>
+        <input type="radio" name="voxel" id="voxel8" value="8"><label for="voxel8"
+            style="background-color: #00ffff;"></label>
+        <input type="radio" name="voxel" id="voxel9" value="9"><label for="voxel9"
+            style="background-color: #0055ff;"></label>
+        <input type="radio" name="voxel" id="voxel10" value="10"><label for="voxel10"
+            style="background-color: #0000ff;"></label>
+        <input type="radio" name="voxel" id="voxel11" value="11"><label for="voxel11"
+            style="background-color: #ff00ff;"></label>
     </div>
 </div>
+<!-- Popup modal for QR Code -->
+<div id="qrModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <canvas id="qrCanvas"></canvas>
+    </div>
+</div>
+<!-- Button at the bottom of the screen -->
+<div class="bottom-container">
+    <button onclick="exportWorldToBase64()">Export to QR Code</button>
+</div>
+
 <link rel="stylesheet" href="styles.css">
 <script type="importmap">
 {
@@ -36,4 +47,6 @@
   }
 }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/pako@1.0.11/dist/pako.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"></script>
 <script type="module" src="app.js"></script>

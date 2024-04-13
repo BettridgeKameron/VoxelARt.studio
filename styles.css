@@ -68,3 +68,86 @@ body {
         width: 2px;
     }
 }
+
+/* Style for modal popup */
+.modal {
+    display: none;
+    /* Hidden by default */
+    position: fixed;
+    /* Stay in place */
+    z-index: 1;
+    /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%;
+    /* Full width */
+    height: 100%;
+    /* Full height */
+    overflow: auto;
+    /* Enable scroll if needed */
+    background-color: rgb(0, 0, 0);
+    /* Fallback color */
+    background-color: rgba(0, 0, 0, 0.4);
+    /* Black w/ opacity */
+}
+
+.modal-content {
+    position: relative;
+    /* Ensure that the child absolute positioning is relative to this container */
+    background-color: #fefefe;
+    margin: 15% auto;
+    /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: auto;
+    /* Auto width to fit content */
+    max-width: 300px;
+    /* Maximum width of the modal */
+    display: flex;
+    /* Using flex to center the canvas vertically and horizontally */
+    justify-content: center;
+    /* Center horizontally */
+    align-items: center;
+    /* Center vertically */
+}
+
+.close {
+    position: absolute;
+    /* Absolute positioning relative to the nearest positioned ancestor */
+    top: 10px;
+    /* Positioned at the top within the modal content */
+    right: 10px;
+    /* Positioned to the right within the modal content */
+    color: #f00;
+    /* Red color */
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: #d00;
+    /* Darker shade of red on hover/focus for better interaction */
+    text-decoration: none;
+}
+
+
+/* Style for button container */
+.bottom-container {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+    padding: 20px 0;
+    background: #ddd;
+    /* Light grey background */
+}
+
+/* Adjust the canvas size if it's too large or has extra space */
+#qrCanvas {
+    max-width: 100%;
+    /* Ensure it does not overflow the modal content width */
+    height: auto;
+    /* Maintain aspect ratio */
+}
