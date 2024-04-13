@@ -413,20 +413,25 @@ function clearScene(scene) {
     }
 }
 
-async function setupARButton(renderer, scene, camera) {
+async function setupARButton(renderer, originalScene, camera) {
     const arButton = ARButton.createButton(renderer, {
         requiredFeatures: ['hit-test']
     });
     document.body.appendChild(arButton);
 
+    let arScene;
+
     renderer.xr.addEventListener('sessionstart', async () => {
         const session = renderer.xr.getSession();
         
-        // Clear previous objects, except essential ones like lights or UI elements
-        clearScene(scene);
+        // Clone the original scene
+        arScene = originalScene.clone();
+        
+        // Clear the cloned AR scene, except essential objects like lights or UI elements
+        clearScene(arScene);
     
         const reticle = new Reticle();
-        scene.add(reticle);
+        arScene.add(reticle);
         let objectPlaced = false;
     
         const viewerSpace = await session.requestReferenceSpace('viewer');
@@ -447,12 +452,12 @@ async function setupARButton(renderer, scene, camera) {
                     reticle.visible = false;
                 }
             }
-            renderer.render(scene, camera);
+            renderer.render(arScene, camera);
         });
     
         session.addEventListener('select', () => {
             if (reticle.visible && !objectPlaced) {
-                placeVoxelArtAtReticle(reticle, scene, world);
+                placeVoxelArtAtReticle(reticle, arScene, world);
                 objectPlaced = true;
                 reticle.visible = false;
             }
@@ -461,7 +466,15 @@ async function setupARButton(renderer, scene, camera) {
     
     renderer.xr.addEventListener('sessionend', () => {
         renderer.setAnimationLoop(null);
-        clearScene(scene);  // Optionally clear the scene on session end if needed
+        
+        // Dispose of the AR scene
+        arScene.traverse(object => {
+            if (object.geometry) object.geometry.dispose();
+            if (object.material) object.material.dispose();
+        });
+
+        // Switch back to the original scene
+        renderer.render(originalScene, camera);
     });
 }
 
