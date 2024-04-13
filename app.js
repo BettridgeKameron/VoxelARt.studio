@@ -359,7 +359,6 @@ class Reticle extends THREE.Mesh {
 
 
 
-
 async function setupARButton(renderer, scene, camera) {
     const arButton = ARButton.createButton(renderer, {
         requiredFeatures: ['hit-test']
@@ -371,6 +370,7 @@ async function setupARButton(renderer, scene, camera) {
 
         const reticle = new Reticle();
         scene.add(reticle);
+        let cubePlaced = false;  // Flag to check if a cube has been placed
 
         // Prepare reference spaces for hit testing
         const viewerSpace = await session.requestReferenceSpace('viewer');
@@ -384,7 +384,8 @@ async function setupARButton(renderer, scene, camera) {
                     const hit = hitTestResults[0];
                     const pose = hit.getPose(renderer.xr.getReferenceSpace());
                     if (pose) {
-                        reticle.visible = true;
+                        // Only display reticle if no cube has been placed
+                        reticle.visible = !cubePlaced;
                         reticle.matrix.fromArray(pose.transform.matrix);
                     }
                 } else {
@@ -393,12 +394,28 @@ async function setupARButton(renderer, scene, camera) {
             }
             renderer.render(scene, camera);
         });
+
+        session.addEventListener('select', () => {
+            if (reticle.visible && !cubePlaced) {
+                // Create a cube and add it where the reticle is
+                const geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1); // Size of the cube
+                const material = new THREE.MeshStandardMaterial({color: 0x00FF00}); // Color of the cube
+                const cube = new THREE.Mesh(geometry, material);
+                cube.position.setFromMatrixPosition(reticle.matrix);
+                scene.add(cube);
+
+                // Update flag and hide the reticle
+                cubePlaced = true;
+                reticle.visible = false;
+            }
+        });
     });
 
     renderer.xr.addEventListener('sessionend', () => {
         renderer.setAnimationLoop(null);
     });
 }
+
 
 
 
