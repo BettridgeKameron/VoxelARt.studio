@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import {
     OrbitControls
 } from 'three/addons/controls/OrbitControls.js';
+import { ARButton } from 'three/addons/webxr/ARButton.js';
 
 class VoxelWorld {
 
@@ -336,6 +337,71 @@ VoxelWorld.faces = [{ // left
 },
 ];
 
+
+
+class Reticle extends THREE.Mesh {
+    constructor() {
+        super(
+            new THREE.RingBufferGeometry(0.1, 0.12, 32).rotateX(-Math.PI / 2),
+            new THREE.MeshStandardMaterial({
+                color: 0x00FF00, // Bright green
+                emissive: 0x00FF00, // Same as the color for a slight glow effect
+                emissiveIntensity: 0.5,
+                metalness: 0.1,
+                roughness: 0.75,
+                side: THREE.DoubleSide
+            })
+        );
+        this.matrixAutoUpdate = false;
+        this.visible = false;
+    }
+}
+
+
+
+
+async function setupARButton(renderer, scene, camera) {
+    const arButton = ARButton.createButton(renderer, {
+        requiredFeatures: ['hit-test']
+    });
+    document.body.appendChild(arButton);
+
+    renderer.xr.addEventListener('sessionstart', async () => {
+        const session = renderer.xr.getSession();
+
+        const reticle = new Reticle();
+        scene.add(reticle);
+
+        // Prepare reference spaces for hit testing
+        const viewerSpace = await session.requestReferenceSpace('viewer');
+        const hitTestSource = await session.requestHitTestSource({ space: viewerSpace });
+
+        renderer.setAnimationLoop(() => {
+            const frame = renderer.xr.getFrame();
+            if (frame) {
+                const hitTestResults = frame.getHitTestResults(hitTestSource);
+                if (hitTestResults.length > 0) {
+                    const hit = hitTestResults[0];
+                    const pose = hit.getPose(renderer.xr.getReferenceSpace());
+                    if (pose) {
+                        reticle.visible = true;
+                        reticle.matrix.fromArray(pose.transform.matrix);
+                    }
+                } else {
+                    reticle.visible = false;
+                }
+            }
+            renderer.render(scene, camera);
+        });
+    });
+
+    renderer.xr.addEventListener('sessionend', () => {
+        renderer.setAnimationLoop(null);
+    });
+}
+
+
+
 let world;
 
 function main() {
@@ -343,8 +409,10 @@ function main() {
     const canvas = document.querySelector('#c');
     const renderer = new THREE.WebGLRenderer({
         antialias: true,
-        canvas
+        canvas,
+        alpha: true
     });
+    renderer.xr.enabled = true;
 
     const cellSize = 32;
 
@@ -360,7 +428,7 @@ function main() {
     controls.update();
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('lightblue');
+    scene.background = null;
 
 
     function addLight(x, y, z) {
@@ -650,7 +718,10 @@ function main() {
 
     controls.addEventListener('change', requestRenderIfNotRequested);
     window.addEventListener('resize', requestRenderIfNotRequested);
-
+    renderer.setAnimationLoop(() => {
+        renderer.render(scene, camera);
+    });
+    setupARButton(renderer, scene, camera);
 }
 
 function exportWorldToBase64() {
