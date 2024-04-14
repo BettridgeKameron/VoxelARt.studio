@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,12 +8,14 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <canvas id="c"></canvas>
     <div id="ui" class="card">
         <div class="card-header">
             <!-- Corrected button for toggling visibility, using Bootstrap data attributes -->
-            <button id="toggleUI" class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#uiContent" aria-expanded="false" aria-controls="uiContent">
+            <button id="toggleUI" class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#uiContent"
+                aria-expanded="false" aria-controls="uiContent">
                 <span class="hamburger-icon">&#9776;</span>
             </button>
             <h5 class="card-title mb-0">Color Palette</h5>
@@ -22,107 +25,124 @@
                 <div class="tiles">
                     <!-- Voxel input elements -->
                     <input type="radio" name="voxel" id="voxel0" value="0"><label for="voxel0" title="Eraser"></label>
-                    <input type="radio" name="voxel" id="voxel1" value="1"><label for="voxel1" style="background-color: #ffffff;" title="White"></label>
-                    <input type="radio" name="voxel" id="voxel2" value="2"><label for="voxel2" style="background-color: #000000;" title="Black"></label>
-                    <input type="radio" name="voxel" id="voxel3" value="3"><label for="voxel3" style="background-color: #ff0000;" title="Red"></label>
-                    <input type="radio" name="voxel" id="voxel4" value="4"><label for="voxel4" style="background-color: #ff5500;" title="Orange"></label>
-                    <input type="radio" name="voxel" id="voxel5" value="5"><label for="voxel5" style="background-color: #ffaa00;" title="Yellow"></label>
-                    <input type="radio" name="voxel" id="voxel6" value="6"><label for="voxel6" style="background-color: #ffff00;" title="Lime"></label>
-                    <input type="radio" name="voxel" id="voxel7" value="7"><label for="voxel7" style="background-color: #00ff00;" title="Green"></label>
-                    <input type="radio" name="voxel" id="voxel8" value="8"><label for="voxel8" style="background-color: #00ffff;" title="Cyan"></label>
-                    <input type="radio" name="voxel" id="voxel9" value="9"><label for="voxel9" style="background-color: #0055ff;" title="Blue"></label>
-                    <input type="radio" name="voxel" id="voxel10" value="10"><label for="voxel10" style="background-color: #0000ff;" title="Dark Blue"></label>
-                    <input type="radio" name="voxel" id="voxel11" value="11"><label for="voxel11" style="background-color: #ff00ff;" title="Magenta"></label>
+                    <input type="radio" name="voxel" id="voxel1" value="1"><label for="voxel1"
+                        style="background-color: #ffffff;" title="White"></label>
+                    <input type="radio" name="voxel" id="voxel2" value="2"><label for="voxel2"
+                        style="background-color: #000000;" title="Black"></label>
+                    <input type="radio" name="voxel" id="voxel3" value="3"><label for="voxel3"
+                        style="background-color: #ff0000;" title="Red"></label>
+                    <input type="radio" name="voxel" id="voxel4" value="4"><label for="voxel4"
+                        style="background-color: #ff5500;" title="Orange"></label>
+                    <input type="radio" name="voxel" id="voxel5" value="5"><label for="voxel5"
+                        style="background-color: #ffaa00;" title="Yellow"></label>
+                    <input type="radio" name="voxel" id="voxel6" value="6"><label for="voxel6"
+                        style="background-color: #ffff00;" title="Lime"></label>
+                    <input type="radio" name="voxel" id="voxel7" value="7"><label for="voxel7"
+                        style="background-color: #00ff00;" title="Green"></label>
+                    <input type="radio" name="voxel" id="voxel8" value="8"><label for="voxel8"
+                        style="background-color: #00ffff;" title="Cyan"></label>
+                    <input type="radio" name="voxel" id="voxel9" value="9"><label for="voxel9"
+                        style="background-color: #0055ff;" title="Blue"></label>
+                    <input type="radio" name="voxel" id="voxel10" value="10"><label for="voxel10"
+                        style="background-color: #0000ff;" title="Dark Blue"></label>
+                    <input type="radio" name="voxel" id="voxel11" value="11"><label for="voxel11"
+                        style="background-color: #ff00ff;" title="Magenta"></label>
                 </div>
             </div>
         </div>
     </div>
 
-<!-- Bottom Container with Toggle Button -->
-<div class="bottom-container position-fixed bottom-0 w-100">
-    <button class="btn btn-link d-block mx-auto card-header" data-bs-toggle="collapse" data-bs-target="#bottomContent" aria-expanded="true" aria-controls="bottomContent" style="width:100%; text-align:center;">
-        <span id="toggleIcon" style="pointer-events: none;">&#9660;</span> <!-- Unicode down chevron -->
-    </button>
-    
-    <div id="bottomContent" class="collapse show">
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#qrModal" onclick="exportWorldToBase64()">Export to QR Code</button>
-        <button id="arButtonCustom" class="btn btn-secondary" disabled>AR Incompatible</button>
+    <!-- Bottom Container with Toggle Button -->
+    <div class="bottom-container position-fixed bottom-0 w-100">
+        <button class="btn btn-link d-block mx-auto card-header" data-bs-toggle="collapse"
+            data-bs-target="#bottomContent" aria-expanded="true" aria-controls="bottomContent"
+            style="width:100%; text-align:center;">
+            <span id="toggleIcon" style="pointer-events: none;">&#9660;</span> <!-- Unicode down chevron -->
+        </button>
+
+        <div id="bottomContent" class="collapse show">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#qrModal"
+                onclick="exportWorldToBase64()">Export to QR Code</button>
+            <button id="arButtonCustom" class="btn btn-secondary" disabled>AR Incompatible</button>
+        </div>
     </div>
-</div>
 
 
 
-<!-- Help button -->
-<button id="helpButton" class="btn" data-bs-toggle="modal" data-bs-target="#helpModal">?</button>
+    <!-- Help button -->
+    <button id="helpButton" class="btn" data-bs-toggle="modal" data-bs-target="#helpModal">?</button>
 
-<div id="qrModal" class="modal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="qrModalLabel">QR Code</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <canvas id="qrCanvas"></canvas>
-                <button id="downloadQR" class="btn btn-success mt-2 d-flex justify-content-center w-100">Download QR Code</button>  <!-- Download button -->
+    <div id="qrModal" class="modal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="qrModalLabel">QR Code</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="qrCanvas"></canvas>
+                    <button id="downloadQR" class="btn btn-success mt-2 d-flex justify-content-center w-100">Download QR
+                        Code</button> <!-- Download button -->
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 
-<!-- Help modal -->
-<div id="helpModal" class="modal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Voxel ARt User Guide</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Welcome to Voxel ARt Studio! Here's how to interact with the voxel world:</p>
-                <h6>General:</h6>
-                <ul>
-                    <li>Select a color from the menu to begin placing down voxels.</li>
-                    <li>Clicking or tapping on a color in the menu will select it. Clicking on the selected color again will deselect it.</li>
-                    <li>To erase, select the "erase" color (first one).</li>
-                    <li>Click the "Export to QR Code" button to generate a QR code for sharing your creation.</li>
-                </ul>
-                <h6>Desktop:</h6>
-                <ul>
-                    <li><strong>Rotate View:</strong> Left-click and drag.</li>
-                    <li><strong>Pan View:</strong> Right-click and drag or Shift + Left-click and drag.</li>
-                    <li><strong>Zoom:</strong> Mouse wheel scroll.</li>
-                    <li><strong>Erase Shortcut:</strong> Shift + click on a voxel to erase.</li>
-                </ul>
-                <h6>Mobile:</h6>
-                <ul>
-                    <li><strong>Rotate View:</strong> Drag one finger across the screen.</li>
-                    <li><strong>Pan View:</strong> Drag two fingers across the screen.</li>
-                    <li><strong>Zoom:</strong> Pinch to zoom in or out.</li>
-                </ul>
-                <h6>Augmented Reality (AR):</h6>
-                <ul>
-                    <li>If your device supports AR, tap the "Enter AR" button to view your art in AR.</li>
-                    <li>In AR mode, point your device towards a flat surface. A green ring will appear, indicating a valid surface for placing your art.</li>
-                    <li>Tap the screen to place your voxel art where the green ring is positioned.</li>
-                </ul>
-                <p>Happy voxel building!</p>
+    <!-- Help modal -->
+    <div id="helpModal" class="modal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Voxel ARt User Guide</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Welcome to Voxel ARt Studio! Here's how to interact with the voxel world:</p>
+                    <h6>General:</h6>
+                    <ul>
+                        <li>Select a color from the menu to begin placing down voxels.</li>
+                        <li>Clicking or tapping on a color in the menu will select it. Clicking on the selected color
+                            again will deselect it.</li>
+                        <li>To erase, select the "erase" color (first one).</li>
+                        <li>Click the "Export to QR Code" button to generate a QR code for sharing your creation.</li>
+                    </ul>
+                    <h6>Desktop:</h6>
+                    <ul>
+                        <li><strong>Rotate View:</strong> Left-click and drag.</li>
+                        <li><strong>Pan View:</strong> Right-click and drag or Shift + Left-click and drag.</li>
+                        <li><strong>Zoom:</strong> Mouse wheel scroll.</li>
+                        <li><strong>Erase Shortcut:</strong> Shift + click on a voxel to erase.</li>
+                    </ul>
+                    <h6>Mobile:</h6>
+                    <ul>
+                        <li><strong>Rotate View:</strong> Drag one finger across the screen.</li>
+                        <li><strong>Pan View:</strong> Drag two fingers across the screen.</li>
+                        <li><strong>Zoom:</strong> Pinch to zoom in or out.</li>
+                    </ul>
+                    <h6>Augmented Reality (AR):</h6>
+                    <ul>
+                        <li>If your device supports AR, tap the "Enter AR" button to view your art in AR.</li>
+                        <li>In AR mode, point your device towards a flat surface. A green ring will appear, indicating a
+                            valid surface for placing your art.</li>
+                        <li>Tap the screen to place your voxel art where the green ring is positioned.</li>
+                    </ul>
+                    <p>Happy voxel building!</p>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 
-<div id="error-panel" style="display: none;">
-    <p>Oops! Something went wrong with Voxel ARt Studio.</p>
-    <p>Please try refreshing the page or contact support if the issue persists.</p>
-</div>
+    <div id="error-panel" style="display: none;">
+        <p>Oops! Something went wrong with Voxel ARt Studio.</p>
+        <p>Please try refreshing the page or contact support if the issue persists.</p>
+    </div>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="styles.css">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script type="importmap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="importmap">
 {
   "imports": {
     "three": "https://unpkg.com/three@0.149.0/build/three.module.js",
@@ -130,39 +150,39 @@
   }
 }
 </script>
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        if (!localStorage.getItem('firstVisit')) {
-            var helpModal = new bootstrap.Modal(document.getElementById('helpModal'));
-            helpModal.show();
-            localStorage.setItem('firstVisit', 'true');
-        }
-    });
-    document.addEventListener("DOMContentLoaded", function() {
-        var toggleIcon = document.getElementById('toggleIcon');
-        var bottomContent = document.getElementById('bottomContent');
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            if (!localStorage.getItem('firstVisit')) {
+                var helpModal = new bootstrap.Modal(document.getElementById('helpModal'));
+                helpModal.show();
+                localStorage.setItem('firstVisit', 'true');
+            }
+        });
+        document.addEventListener("DOMContentLoaded", function () {
+            var toggleIcon = document.getElementById('toggleIcon');
+            var bottomContent = document.getElementById('bottomContent');
 
-        bottomContent.addEventListener('show.bs.collapse', function () {
-            toggleIcon.innerHTML = '&#9660;'; // Chevron points down when expanded
-        });
+            bottomContent.addEventListener('show.bs.collapse', function () {
+                toggleIcon.innerHTML = '&#9660;'; // Chevron points down when expanded
+            });
 
-        bottomContent.addEventListener('hide.bs.collapse', function () {
-            toggleIcon.innerHTML = '&#9650;'; // Chevron points up when collapsed
+            bottomContent.addEventListener('hide.bs.collapse', function () {
+                toggleIcon.innerHTML = '&#9650;'; // Chevron points up when collapsed
+            });
         });
-    });
-    document.addEventListener("DOMContentLoaded", function() {
-        var downloadButton = document.getElementById('downloadQR');
-        downloadButton.addEventListener('click', function() {
-            var canvas = document.getElementById('qrCanvas');
-            var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream"); // Convert image to 'octet-stream' (forces download)
-            var link = document.createElement('a'); // Create a link
-            link.download = 'qr-code.png'; // Set the download name
-            link.href = image; // Set the href to download
-            link.click(); // Click the link
+        document.addEventListener("DOMContentLoaded", function () {
+            var downloadButton = document.getElementById('downloadQR');
+            downloadButton.addEventListener('click', function () {
+                var canvas = document.getElementById('qrCanvas');
+                var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream"); // Convert image to 'octet-stream' (forces download)
+                var link = document.createElement('a'); // Create a link
+                link.download = 'qr-code.png'; // Set the download name
+                link.href = image; // Set the href to download
+                link.click(); // Click the link
+            });
         });
-    });
-</script>
-    
-<script src="https://cdn.jsdelivr.net/npm/pako@1.0.11/dist/pako.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"></script>
-<script type="module" src="app.js"></script>
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/pako@1.0.11/dist/pako.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"></script>
+    <script type="module" src="app.js"></script>
