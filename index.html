@@ -1,47 +1,97 @@
-<canvas id="c"></canvas>
-<div id="ui">
-    <div class="tiles">
-        <input type="radio" name="voxel" id="voxel0" value="0"><label for="voxel0"></label>
-        <input type="radio" name="voxel" id="voxel1" value="1"><label for="voxel1"
-            style="background-color: #ffffff;"></label>
-        <input type="radio" name="voxel" id="voxel2" value="2"><label for="voxel2"
-            style="background-color: #000000;"></label>
-        <input type="radio" name="voxel" id="voxel3" value="3"><label for="voxel3"
-            style="background-color: #ff0000;"></label>
-        <input type="radio" name="voxel" id="voxel4" value="4"><label for="voxel4"
-            style="background-color: #ff5500;"></label>
-        <input type="radio" name="voxel" id="voxel5" value="5"><label for="voxel5"
-            style="background-color: #ffaa00;"></label>
-        <input type="radio" name="voxel" id="voxel6" value="6"><label for="voxel6"
-            style="background-color: #ffff00;"></label>
-        <input type="radio" name="voxel" id="voxel7" value="7"><label for="voxel7"
-            style="background-color: #00ff00;"></label>
-        <input type="radio" name="voxel" id="voxel8" value="8"><label for="voxel8"
-            style="background-color: #00ffff;"></label>
-        <input type="radio" name="voxel" id="voxel9" value="9"><label for="voxel9"
-            style="background-color: #0055ff;"></label>
-        <input type="radio" name="voxel" id="voxel10" value="10"><label for="voxel10"
-            style="background-color: #0000ff;"></label>
-        <input type="radio" name="voxel" id="voxel11" value="11"><label for="voxel11"
-            style="background-color: #ff00ff;"></label>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voxel Editor</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <canvas id="c"></canvas>
+    <div id="ui" class="card">
+        <div class="card-header">
+            <!-- Corrected button for toggling visibility, using Bootstrap data attributes -->
+            <button id="toggleUI" class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#uiContent" aria-expanded="false" aria-controls="uiContent">
+                <span class="hamburger-icon">&#9776;</span>
+            </button>
+            <h5 class="card-title mb-0">Voxel Colors</h5>
+        </div>
+        <div id="uiContent" class="collapse">
+            <div class="card-body">
+                <div class="tiles">
+                    <!-- Voxel input elements -->
+                    <input type="radio" name="voxel" id="voxel0" value="0"><label for="voxel0" title="Eraser"></label>
+                    <input type="radio" name="voxel" id="voxel1" value="1"><label for="voxel1" style="background-color: #ffffff;" title="White"></label>
+                    <input type="radio" name="voxel" id="voxel2" value="2"><label for="voxel2" style="background-color: #000000;" title="Black"></label>
+                    <input type="radio" name="voxel" id="voxel3" value="3"><label for="voxel3" style="background-color: #ff0000;" title="Red"></label>
+                    <input type="radio" name="voxel" id="voxel4" value="4"><label for="voxel4" style="background-color: #ff5500;" title="Orange"></label>
+                    <input type="radio" name="voxel" id="voxel5" value="5"><label for="voxel5" style="background-color: #ffaa00;" title="Yellow"></label>
+                    <input type="radio" name="voxel" id="voxel6" value="6"><label for="voxel6" style="background-color: #ffff00;" title="Lime"></label>
+                    <input type="radio" name="voxel" id="voxel7" value="7"><label for="voxel7" style="background-color: #00ff00;" title="Green"></label>
+                    <input type="radio" name="voxel" id="voxel8" value="8"><label for="voxel8" style="background-color: #00ffff;" title="Cyan"></label>
+                    <input type="radio" name="voxel" id="voxel9" value="9"><label for="voxel9" style="background-color: #0055ff;" title="Blue"></label>
+                    <input type="radio" name="voxel" id="voxel10" value="10"><label for="voxel10" style="background-color: #0000ff;" title="Dark Blue"></label>
+                    <input type="radio" name="voxel" id="voxel11" value="11"><label for="voxel11" style="background-color: #ff00ff;" title="Magenta"></label>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
-<!-- Popup modal for QR Code -->
-<div id="qrModal" class="modal">
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <canvas id="qrCanvas"></canvas>
-    </div>
-</div>
-
 
 <!-- Button at the bottom of the screen -->
 <div class="bottom-container">
-    <button onclick="exportWorldToBase64()">Export to QR Code</button>
-    <button id="arButton" style="display: none;">Enter AR</button>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#qrModal" onclick="exportWorldToBase64()">Export to QR Code</button>
+    <button id="arButtonCustom" class="btn btn-secondary" disabled>AR Incompatible</button>
 </div>
 
+<!-- Help button -->
+<button id="helpButton" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#helpModal">?</button>
+
+<!-- Popup modal for QR Code -->
+<div id="qrModal" class="modal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="qrModalLabel">QR Code</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <canvas id="qrCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Help modal -->
+<div id="helpModal" class="modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">User Guide</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Welcome to the Voxel Editor!</p>
+                <ul>
+                    <li>Click and drag to rotate the view.</li>
+                    <li>Select a color from the palette and click on the scene to place voxels.</li>
+                    <li>Use the "Eraser" color to remove voxels.</li>
+                    <li>Click the "Export to QR Code" button to generate a QR code for sharing your creation.</li>
+                </ul>
+                <p>Happy voxel building!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="error-panel" style="display: none;">
+    <p>Oops! Something went wrong.</p>
+    <p>Please try refreshing the page or contact support if the issue persists.</p>
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script type="importmap">
 {
   "imports": {
@@ -50,6 +100,16 @@
   }
 }
 </script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        if (!localStorage.getItem('firstVisit')) {
+            var helpModal = new bootstrap.Modal(document.getElementById('helpModal'));
+            helpModal.show();
+            localStorage.setItem('firstVisit', 'true');
+        }
+    });
+    </script>
+    
 <script src="https://cdn.jsdelivr.net/npm/pako@1.0.11/dist/pako.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"></script>
 <script type="module" src="app.js"></script>

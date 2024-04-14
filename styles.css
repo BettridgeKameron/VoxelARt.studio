@@ -14,140 +14,164 @@ body {
     position: absolute;
     left: 10px;
     top: 10px;
-    background: rgba(0, 0, 0, 0.8);
-    padding: 5px;
+    z-index: 1000;
+    width: 300px;
+}
+
+#ui .card-header {
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-bottom: none;
+    padding: 10px;
+}
+
+#ui .card-title {
+    margin-left: 10px;
+    font-size: 18px;
+}
+
+#ui .card-body {
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px;
 }
 
 #ui input[type=radio] {
     display: none;
 }
 
-#ui input[type=radio]+label {
-    width: 64px;
-    height: 64px;
+#ui input[type=radio] + label {
+    width: 40px;
+    height: 40px;
     display: inline-block;
     background-color: #000;
     position: relative;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    border: 2px solid #333;
+    box-sizing: border-box;
 }
 
-#ui input[type=radio]:checked+label {
-    outline: 3px solid red;
+#ui input[type=radio]:checked + label {
+    outline: 3px solid #007bff;
 }
 
 #ui label[for="voxel0"]::before,
 #ui label[for="voxel0"]::after {
     content: "";
     position: absolute;
-    top: 16px;
-    left: 30px;
-    height: 32px;
-    width: 4px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    height: 4px;
     background-color: #f00;
 }
 
 #ui label[for="voxel0"]::before {
-    transform: rotate(45deg);
+    transform: translate(-50%, -50%) rotate(45deg);
 }
 
 #ui label[for="voxel0"]::after {
-    transform: rotate(-45deg);
+    transform: translate(-50%, -50%) rotate(-45deg);
 }
 
-@media (max-width: 600px),
-(max-height: 600px) {
-    #ui input[type=radio]+label {
-        width: 32px;
-        height: 32px;
-    }
-
-    #ui label[for="voxel0"]::before,
-    #ui label[for="voxel0"]::after {
-        top: 8px;
-        left: 15px;
-        height: 16px;
-        width: 2px;
-    }
-}
-
-/* Style for modal popup */
-.modal {
-    display: none;
-    /* Hidden by default */
-    position: fixed;
-    /* Stay in place */
-    z-index: 1;
-    /* Sit on top */
-    left: 0;
-    top: 0;
-    width: 100%;
-    /* Full width */
-    height: 100%;
-    /* Full height */
-    overflow: auto;
-    /* Enable scroll if needed */
-    background-color: rgb(0, 0, 0);
-    /* Fallback color */
-    background-color: rgba(0, 0, 0, 0.4);
-    /* Black w/ opacity */
-}
-
-.modal-content {
-    position: relative;
-    /* Ensure that the child absolute positioning is relative to this container */
-    background-color: #fefefe;
-    margin: 15% auto;
-    /* 15% from the top and centered */
-    padding: 20px;
-    border: 1px solid #888;
-    width: auto;
-    /* Auto width to fit content */
-    max-width: 300px;
-    /* Maximum width of the modal */
-    display: flex;
-    /* Using flex to center the canvas vertically and horizontally */
-    justify-content: center;
-    /* Center horizontally */
-    align-items: center;
-    /* Center vertically */
-}
-
-.close {
-    position: absolute;
-    /* Absolute positioning relative to the nearest positioned ancestor */
-    top: 10px;
-    /* Positioned at the top within the modal content */
-    right: 10px;
-    /* Positioned to the right within the modal content */
-    color: #f00;
-    /* Red color */
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.close:hover,
-.close:focus {
-    color: #d00;
-    /* Darker shade of red on hover/focus for better interaction */
-    text-decoration: none;
-}
-
-
-/* Style for button container */
 .bottom-container {
     position: fixed;
     bottom: 0;
     width: 100%;
     text-align: center;
     padding: 20px 0;
-    background: #ddd;
-    /* Light grey background */
+    background: #f8f9fa;
 }
 
-/* Adjust the canvas size if it's too large or has extra space */
+.bottom-container button {
+    margin: 0 10px;
+    font-size: 16px;
+    padding: 10px 20px;
+}
+
 #qrCanvas {
+    display: block;
     max-width: 100%;
-    /* Ensure it does not overflow the modal content width */
     height: auto;
-    /* Maintain aspect ratio */
+    margin: 0 auto;
+}
+
+
+#toggleUI {
+    color: #000;
+    text-decoration: none;
+}
+
+#toggleUI:hover {
+    color: #000;
+    text-decoration: none;
+}
+
+.hamburger-icon {
+    font-size: 24px;
+}
+
+#error-panel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 0, 0, 0.8);
+    color: white;
+    padding: 20px;
+    border-radius: 4px;
+    font-size: 18px;
+    z-index: 1000;
+    text-align: center;
+}
+
+#helpButton {
+    position: fixed;
+    top: 15px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+@media screen and (max-width: 600px) {
+    #ui {
+        width: calc(100% - 20px);
+        left: 10px;
+        top: 10px;
+    }
+
+    #ui .card-title {
+        font-size: 24px;
+    }
+
+    #ui input[type=radio]+label {
+        width: 60px;
+        height: 60px;
+    }
+
+    .bottom-container button {
+        font-size: 18px;
+        padding: 15px 25px;
+        margin: 10px;
+        display: block;
+        width: 80%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    #helpButton {
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+    }
 }

@@ -417,7 +417,22 @@ async function setupARButton(renderer, originalScene, camera) {
     const arButton = ARButton.createButton(renderer, {
         requiredFeatures: ['hit-test']
     });
-    document.body.appendChild(arButton);
+    
+    const arButtonElement = document.getElementById('arButtonCustom');
+
+    // Check if AR is supported
+    if (await navigator.xr.isSessionSupported('immersive-ar')) {
+        // Update the button text and class
+        arButtonElement.textContent = 'Enter AR';
+        arButtonElement.className = 'btn btn-success';
+        arButtonElement.disabled = false;
+
+        // Add event listener to trigger AR functionality when clicked
+        arButtonElement.addEventListener('click', () => {
+            document.body.appendChild(arButton);
+            arButton.click();
+        });
+    }
 
     let arScene;
 
@@ -465,6 +480,7 @@ async function setupARButton(renderer, originalScene, camera) {
     });
     
     renderer.xr.addEventListener('sessionend', () => {
+        document.getElementById('ARButton').remove();
         renderer.setAnimationLoop(null);
         
         // Dispose of the AR scene
@@ -817,24 +833,11 @@ function exportWorldToBase64() {
             console.error("QR Code Error: ", error);
         } else {
             console.log('QR code successfully generated!');
-            // Show the modal
-            document.getElementById('qrModal').style.display = 'block';
         }
     });
 }
 window.exportWorldToBase64 = exportWorldToBase64;
 
-// Add close functionality to modal
-document.querySelector('.close').addEventListener('click', function () {
-    document.getElementById('qrModal').style.display = 'none';
-});
-
-// Close modal if outside click
-window.onclick = function (event) {
-    if (event.target == document.getElementById('qrModal')) {
-        document.getElementById('qrModal').style.display = 'none';
-    }
-}
 
 
 
