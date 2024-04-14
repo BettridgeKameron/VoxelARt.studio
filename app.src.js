@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from 'three'; // The Voxel Minecraft Like Tutorial was used for reference for some parts
 import {
     OrbitControls
 } from 'three/addons/controls/OrbitControls.js';
