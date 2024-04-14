@@ -61,11 +61,34 @@
         </button>
 
         <div id="bottomContent" class="collapse">
+            <button id="arButtonCustom" class="btn btn-secondary" disabled>AR Incompatible</button>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#qrModal"
                 onclick="exportWorldQRCode()">Share Voxel ARt</button>
-            <button id="arButtonCustom" class="btn btn-secondary" disabled>AR Incompatible</button>
+            <button class="btn btn-danger" data-bs-toggle="modal"
+                data-bs-target="#resetConfirmationModal">Reset</button>
         </div>
     </div>
+
+    <!-- Reset Confirmation Modal -->
+    <div class="modal fade" id="resetConfirmationModal" tabindex="-1" aria-labelledby="resetModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resetModalLabel">Confirm Reset</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <strong>Are you sure you want to reset the canvas?</strong><br>All changes will be lost.
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <a href="#" class="link-danger fw-bold text-decoration-underline" id="confirmReset">Yes</a>
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 
 
@@ -73,7 +96,7 @@
     <!-- Help button -->
     <button id="helpButton" class="btn" data-bs-toggle="modal" data-bs-target="#helpModal">?</button>
 
-    <div id="qrModal" class="modal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
+    <div id="qrModal" class="modal fade" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -85,8 +108,7 @@
                     <button id="downloadQR" class="btn btn-success mt-2 d-flex justify-content-center w-100">Download QR
                         Code</button>
                     <button id="copyLink" class="btn btn-primary mt-2 d-flex justify-content-center w-100">Copy Voxel
-                        ARt
-                        Link to Clipboard</button>
+                        ARt Link to Clipboard</button>
                 </div>
             </div>
         </div>
@@ -94,7 +116,7 @@
 
 
     <!-- Help modal -->
-    <div id="helpModal" class="modal" tabindex="-1">
+    <div id="helpModal" class="modal fade" tabindex="-1">
         <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
@@ -116,7 +138,7 @@
                         <li><strong>Rotate View:</strong> Left-click and drag.</li>
                         <li><strong>Pan View:</strong> Right-click and drag or Shift + Left-click and drag.</li>
                         <li><strong>Zoom:</strong> Mouse wheel scroll.</li>
-                        <li><strong>Erase Shortcut:</strong> Shift + click on a voxel to erase.</li>
+                        <li><strong>Erase Shortcut:</strong> Shift + click on a voxel to erase when a color is already selected.</li>
                     </ul>
                     <h6>Mobile:</h6>
                     <ul>
@@ -210,6 +232,16 @@
                 });
             });
         });
+        document.addEventListener("DOMContentLoaded", function () {
+            var confirmResetLink = document.getElementById('confirmReset');
+            confirmResetLink.addEventListener('click', function (event) {
+                event.preventDefault();
+                resetWorld();
+                var resetModal = bootstrap.Modal.getInstance(document.getElementById('resetConfirmationModal'));
+                resetModal.hide();
+            });
+        });
+
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/pako@1.0.11/dist/pako.min.js"></script>

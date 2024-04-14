@@ -623,25 +623,7 @@ function main() {
 
     }
 
-    function initializeWorld() {
-        if (location.hash) {
-            const hashData = location.hash.substring(1); // remove '#'
-            try {
-                const compressedData = atob(decodeURIComponent(hashData));
-                const data = pako.inflate(compressedData, { to: 'string' });
-                world.deserialize(data);
-                Object.keys(world.cells).forEach(cellId => {
-                    const [x, y, z] = cellId.split(',').map(Number);
-                    updateCellGeometry(x * world.cellSize, y * world.cellSize, z * world.cellSize);
-                });
-                console.log("World loaded from URL hash.");
-                return;
-            } catch (e) {
-                console.error("Failed to load world from hash", e);
-            }
-        }
-
-        // Default initialization if no hash data or on error
+    function generatePlane() {
         for (let z = 0; z < cellSize; ++z) {
             for (let x = 0; x < cellSize; ++x) {
                 world.setVoxel(x, 0, z, 1);
@@ -650,7 +632,82 @@ function main() {
         updateVoxelGeometry(1, 1, 1);
     }
 
+    function initializeWorld() {
+        // Priority to URL hash
+        if (location.hash) {
+            const hashData = location.hash.substring(1); // Remove the '#' character
+            try {
+                const compressedData = atob(decodeURIComponent(hashData));
+                const data = pako.inflate(compressedData, { to: 'string' });
+                world.deserialize(data);
+                loadCells();
+                console.log("World loaded from URL hash.");
+                
+                // Update local storage with new data
+                localStorage.setItem('worldData', data);
+                
+                // Clear the URL hash
+                history.pushState("", document.title, location.pathname + location.search);
+            } catch (e) {
+                console.error("Failed to load world from hash", e);
+            }
+        } else {
+            // Fallback to local storage
+            const localData = localStorage.getItem('worldData');
+            if (localData) {
+                world.deserialize(localData);
+                loadCells();
+                console.log("World loaded from local storage.");
+            } else {
+                // Default initialization if no data found anywhere
+                generatePlane();
+            }
+        }
+    }
+
     initializeWorld();
+
+    function loadCells() {
+        Object.keys(world.cells).forEach(cellId => {
+            const [x, y, z] = cellId.split(',').map(Number);
+            updateCellGeometry(x * world.cellSize, y * world.cellSize, z * world.cellSize);
+        });
+    }
+
+    function resetWorld() {
+        Object.keys(world.cells).forEach(cellId => {
+            const cell = world.cells[cellId];
+            cell.fill(0);
+        });
+    
+        // Update geometry for all cells
+        Object.keys(world.cells).forEach(cellId => {
+            const [x, y, z] = cellId.split(',').map(Number);
+            updateCellGeometry(x * world.cellSize, y * world.cellSize, z * world.cellSize);
+        });
+        generatePlane();
+    
+        // Save the reset world state to local storage
+        saveWorldState();
+    
+        // Optionally, log the reset action
+        console.log("World has been reset to initial state.");
+    }
+    window.resetWorld = resetWorld;
+
+    function saveWorldState() {
+        const data = world.serialize();
+        localStorage.setItem('worldData', data);
+    }
+
+    document.querySelectorAll('#ui .tiles input[type=radio][name=voxel]').forEach((elem) => {
+        elem.addEventListener('change', function() {
+            if (this.checked) {
+                saveWorldState(); // Save world state when a voxel is changed
+            }
+        });
+    });
+    window.addEventListener('beforeunload', saveWorldState);
 
     function resizeRendererToDisplaySize(renderer) {
 
