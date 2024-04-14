@@ -38,16 +38,23 @@
         </div>
     </div>
 
-<!-- Button at the bottom of the screen -->
-<div class="bottom-container">
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#qrModal" onclick="exportWorldToBase64()">Export to QR Code</button>
-    <button id="arButtonCustom" class="btn btn-secondary" disabled>AR Incompatible</button>
+<!-- Bottom Container with Toggle Button -->
+<div class="bottom-container position-fixed bottom-0 w-100">
+    <button class="btn btn-link d-block mx-auto card-header" data-bs-toggle="collapse" data-bs-target="#bottomContent" aria-expanded="true" aria-controls="bottomContent" style="width:100%; text-align:center;">
+        <span id="toggleIcon" style="pointer-events: none;">&#9660;</span> <!-- Unicode down chevron -->
+    </button>
+    
+    <div id="bottomContent" class="collapse show">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#qrModal" onclick="exportWorldToBase64()">Export to QR Code</button>
+        <button id="arButtonCustom" class="btn btn-secondary" disabled>AR Incompatible</button>
+    </div>
 </div>
 
-<!-- Help button -->
-<button id="helpButton" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#helpModal">?</button>
 
-<!-- Popup modal for QR Code -->
+
+<!-- Help button -->
+<button id="helpButton" class="btn" data-bs-toggle="modal" data-bs-target="#helpModal">?</button>
+
 <div id="qrModal" class="modal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -57,10 +64,12 @@
             </div>
             <div class="modal-body">
                 <canvas id="qrCanvas"></canvas>
+                <button id="downloadQR" class="btn btn-success mt-2 d-flex justify-content-center w-100">Download QR Code</button>  <!-- Download button -->
             </div>
         </div>
     </div>
 </div>
+
 
 <!-- Help modal -->
 <div id="helpModal" class="modal" tabindex="-1">
@@ -129,7 +138,30 @@
             localStorage.setItem('firstVisit', 'true');
         }
     });
-    </script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var toggleIcon = document.getElementById('toggleIcon');
+        var bottomContent = document.getElementById('bottomContent');
+
+        bottomContent.addEventListener('show.bs.collapse', function () {
+            toggleIcon.innerHTML = '&#9660;'; // Chevron points down when expanded
+        });
+
+        bottomContent.addEventListener('hide.bs.collapse', function () {
+            toggleIcon.innerHTML = '&#9650;'; // Chevron points up when collapsed
+        });
+    });
+    document.addEventListener("DOMContentLoaded", function() {
+        var downloadButton = document.getElementById('downloadQR');
+        downloadButton.addEventListener('click', function() {
+            var canvas = document.getElementById('qrCanvas');
+            var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream"); // Convert image to 'octet-stream' (forces download)
+            var link = document.createElement('a'); // Create a link
+            link.download = 'qr-code.png'; // Set the download name
+            link.href = image; // Set the href to download
+            link.click(); // Click the link
+        });
+    });
+</script>
     
 <script src="https://cdn.jsdelivr.net/npm/pako@1.0.11/dist/pako.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"></script>
