@@ -444,6 +444,7 @@ async function setupARButton(renderer, originalScene, camera) {
         
         // Clear the cloned AR scene, except essential objects like lights or UI elements
         clearScene(arScene);
+        arScene.background = null;
     
         const reticle = new Reticle();
         arScene.add(reticle);
@@ -523,21 +524,30 @@ function main() {
     controls.update();
 
     const scene = new THREE.Scene();
-    scene.background = null;
+    scene.background = new THREE.Color('lightblue');
 
 
-    function addLight(x, y, z) {
-
+    function addLight(x, y, z, targetX, targetY, targetZ) {
         const color = 0xFFFFFF;
-        const intensity = 2;
+        const intensity = .5;
         const light = new THREE.DirectionalLight(color, intensity);
         light.position.set(x, y, z);
+        light.target.position.set(targetX, targetY, targetZ);
         scene.add(light);
-
+        scene.add(light.target); // Don't forget to add the target to the scene
     }
+    
+    // Example setup, adjust angles as necessary
+    addLight(-1, cellSize, 4, 0, cellSize * 0.5, 0); // Pointing towards the center
+    addLight(1, cellSize, -2, 0, cellSize * 0.5, 0); // Pointing towards the center
+    
 
-    addLight(-1, 2, 4);
-    addLight(1, -1, -2);
+    function addAmbientLight() {
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // soft white light
+        scene.add(ambientLight);
+    }
+    addAmbientLight();
+    
 
     world = new VoxelWorld({
         cellSize
