@@ -55,17 +55,18 @@
     <!-- Bottom Container with Toggle Button -->
     <div class="bottom-container position-fixed bottom-0 w-100">
         <button class="btn btn-link d-block mx-auto card-header" data-bs-toggle="collapse"
-            data-bs-target="#bottomContent" aria-expanded="true" aria-controls="bottomContent"
+            data-bs-target="#bottomContent" aria-expanded="false" aria-controls="bottomContent"
             style="width:100%; text-align:center;">
-            <span id="toggleIcon" style="pointer-events: none;">&#9660;</span> <!-- Unicode down chevron -->
+            <span id="toggleIcon" style="pointer-events: none;">&#9650;</span> <!-- Unicode up chevron -->
         </button>
 
-        <div id="bottomContent" class="collapse show">
+        <div id="bottomContent" class="collapse">
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#qrModal"
-                onclick="exportWorldToBase64()">Export to QR Code</button>
+                onclick="exportWorldQRCode()">Share Voxel ARt</button>
             <button id="arButtonCustom" class="btn btn-secondary" disabled>AR Incompatible</button>
         </div>
     </div>
+
 
 
 
@@ -76,13 +77,16 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="qrModalLabel">QR Code</h5>
+                    <h5 class="modal-title" id="qrModalLabel">Share Options</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <canvas id="qrCanvas"></canvas>
                     <button id="downloadQR" class="btn btn-success mt-2 d-flex justify-content-center w-100">Download QR
-                        Code</button> <!-- Download button -->
+                        Code</button>
+                    <button id="copyLink" class="btn btn-primary mt-2 d-flex justify-content-center w-100">Copy Voxel
+                        ARt
+                        Link to Clipboard</button>
                 </div>
             </div>
         </div>
@@ -174,11 +178,36 @@
             var downloadButton = document.getElementById('downloadQR');
             downloadButton.addEventListener('click', function () {
                 var canvas = document.getElementById('qrCanvas');
-                var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream"); // Convert image to 'octet-stream' (forces download)
-                var link = document.createElement('a'); // Create a link
-                link.download = 'qr-code.png'; // Set the download name
-                link.href = image; // Set the href to download
-                link.click(); // Click the link
+                var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+                var link = document.createElement('a');
+                link.download = 'VoxelARt_QRCode.png';
+                link.href = image;
+                link.click();
+            });
+        });
+        document.addEventListener("DOMContentLoaded", function () {
+            var copyLinkButton = document.getElementById('copyLink');
+            copyLinkButton.addEventListener('click', function () {
+                var originalText = copyLinkButton.textContent;
+                var shareURL = getShareURL();
+
+                navigator.clipboard.writeText(shareURL).then(() => {
+                    copyLinkButton.textContent = 'Link Copied!';
+                    copyLinkButton.classList.add('btn-info');
+                    copyLinkButton.classList.remove('btn-primary');
+
+                    setTimeout(() => {
+                        copyLinkButton.textContent = originalText;
+                        copyLinkButton.classList.add('btn-primary');
+                        copyLinkButton.classList.remove('btn-info');
+                    }, 1000);
+                }).catch(err => {
+                    console.error('Error in copying text: ', err);
+                    copyLinkButton.textContent = 'Failed to Copy';
+                    setTimeout(() => {
+                        copyLinkButton.textContent = originalText;
+                    }, 1000);
+                });
             });
         });
     </script>

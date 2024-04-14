@@ -829,15 +829,22 @@ function main() {
     setupARButton(renderer, scene, camera);
 }
 
-function exportWorldToBase64() {
+function serializeToBase64() {
+    const data = world.serialize();
+    const compressedData = pako.deflate(data, { to: 'string' });
+    return encodeURIComponent(btoa(compressedData));
+}
+
+function getShareURL(){
+    return `${location.origin}${location.pathname}#${serializeToBase64()}`;
+}
+
+function exportWorldQRCode() {
     if (!world) {
         console.error("World is not initialized.");
         return;
     }
-    const data = world.serialize();
-    const compressedData = pako.deflate(data, { to: 'string' });
-    const encodedData = encodeURIComponent(btoa(compressedData));
-    const url = `${location.origin}${location.pathname}#${encodedData}`;
+    const url = getShareURL();
     QRCode.toCanvas(document.getElementById('qrCanvas'), url, function (error) {
         if (error) {
             console.error("QR Code Error: ", error);
@@ -846,7 +853,8 @@ function exportWorldToBase64() {
         }
     });
 }
-window.exportWorldToBase64 = exportWorldToBase64;
+window.exportWorldQRCode = exportWorldQRCode;
+window.getShareURL = getShareURL;
 
 
 
