@@ -105,8 +105,8 @@
                 </div>
                 <div class="modal-body">
                     <canvas id="qrCanvas"></canvas>
-                    <button id="downloadQR" class="btn btn-success mt-2 d-flex justify-content-center w-100">Download QR
-                        Code</button>
+                    <button id="downloadQR" class="btn btn-success mt-2 d-flex justify-content-center w-100" onclick="downloadCanvasAsPNG('qrCanvas', 'VoxelArt_QRCode.png')">Download QR Code PNG</button>
+                    <button class="btn btn-primary mt-2 d-flex justify-content-center w-100" onclick="downloadCanvasAsPNG('c', 'VoxelArt.png')">Download Canvas Render PNG</button>
                     <button id="copyLink" class="btn btn-primary mt-2 d-flex justify-content-center w-100">Copy Voxel
                         ARt Link to Clipboard</button>
                 </div>
@@ -138,7 +138,8 @@
                         <li><strong>Rotate View:</strong> Left-click and drag.</li>
                         <li><strong>Pan View:</strong> Right-click and drag or Shift + Left-click and drag.</li>
                         <li><strong>Zoom:</strong> Mouse wheel scroll.</li>
-                        <li><strong>Erase Shortcut:</strong> Shift + click on a voxel to erase when a color is already selected.</li>
+                        <li><strong>Erase Shortcut:</strong> Shift + click on a voxel to erase when a color is already
+                            selected.</li>
                     </ul>
                     <h6>Mobile:</h6>
                     <ul>
@@ -177,6 +178,19 @@
 }
 </script>
     <script>
+        function downloadCanvasAsPNG(canvasId, fileName) {
+            const canvas = document.getElementById(canvasId);
+            if (canvas) {
+                const image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+                const link = document.createElement('a');
+                link.download = fileName;
+                link.href = image;
+                link.click();
+            } else {
+                console.error("No canvas found with ID:", canvasId);
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", function () {
             if (!localStorage.getItem('firstVisit')) {
                 var helpModal = new bootstrap.Modal(document.getElementById('helpModal'));
@@ -194,17 +208,6 @@
 
             bottomContent.addEventListener('hide.bs.collapse', function () {
                 toggleIcon.innerHTML = '&#9650;'; // Chevron points up when collapsed
-            });
-        });
-        document.addEventListener("DOMContentLoaded", function () {
-            var downloadButton = document.getElementById('downloadQR');
-            downloadButton.addEventListener('click', function () {
-                var canvas = document.getElementById('qrCanvas');
-                var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-                var link = document.createElement('a');
-                link.download = 'VoxelARt_QRCode.png';
-                link.href = image;
-                link.click();
             });
         });
         document.addEventListener("DOMContentLoaded", function () {

@@ -1,1 +1,920 @@
-import*as e from"three";import{OrbitControls as t}from"three/addons/controls/OrbitControls.js";import{ARButton as r}from"three/addons/webxr/ARButton.js";class VoxelWorld{constructor(e){this.cellSize=e.cellSize;let{cellSize:t}=this;this.cellSliceSize=t*t,this.cells={}}computeVoxelOffset(t,r,l){let{cellSize:o,cellSliceSize:i}=this,n=0|e.MathUtils.euclideanModulo(t,o),s=0|e.MathUtils.euclideanModulo(r,o),a=0|e.MathUtils.euclideanModulo(l,o);return s*i+a*o+n}computeCellId(e,t,r){let{cellSize:l}=this;return`${Math.floor(e/l)},${Math.floor(t/l)},${Math.floor(r/l)}`}addCellForVoxel(e,t,r){let l=this.computeCellId(e,t,r),o=this.cells[l];if(!o){let{cellSize:i}=this;o=new Uint8Array(i*i*i),this.cells[l]=o}return o}getCellForVoxel(e,t,r){return this.cells[this.computeCellId(e,t,r)]}setVoxel(e,t,r,l,o=!0){let i=this.getCellForVoxel(e,t,r);if(!i){if(!o)return;i=this.addCellForVoxel(e,t,r)}let n=this.computeVoxelOffset(e,t,r);i[n]=l}getVoxel(e,t,r){let l=this.getCellForVoxel(e,t,r);if(!l)return 0;let o=this.computeVoxelOffset(e,t,r);return l[o]}generateGeometryDataForCell(t,r,l){let{cellSize:o}=this,i=[],n=[],s=[],a=[],$=t*o,d=r*o,c=l*o;for(let f=0;f<o;++f){let u=d+f;for(let _=0;_<o;++_){let h=c+_;for(let m=0;m<o;++m){let x=$+m,p=this.getVoxel(x,u,h);if(p){let g=[0,16777215,0,16711680,16733440,16755200,16776960,65280,65535,22015,255,16711935],w=p%g.length,v=new e.Color(g[w]);for(let{dir:b,corners:y}of VoxelWorld.faces){let S=this.getVoxel(x+b[0],u+b[1],h+b[2]);if(!S){let z=i.length/3;for(let L of y)i.push(L[0]+m,L[1]+f,L[2]+_),n.push(...b),a.push(v.r,v.g,v.b);s.push(z,z+1,z+2,z+2,z+1,z+3)}}}}}}return{positions:i,normals:n,colors:a,indices:s}}intersectRay(e,t){let r=t.x-e.x,l=t.y-e.y,o=t.z-e.z,i=r*r+l*l+o*o,n=Math.sqrt(i);r/=n,l/=n,o/=n;let s=0,a=Math.floor(e.x),$=Math.floor(e.y),d=Math.floor(e.z),c=r>0?1:-1,f=l>0?1:-1,u=o>0?1:-1,_=Math.abs(1/r),h=Math.abs(1/l),m=Math.abs(1/o),x=c>0?a+1-e.x:e.x-a,p=f>0?$+1-e.y:e.y-$,g=u>0?d+1-e.z:e.z-d,w=_<1/0?_*x:1/0,v=h<1/0?h*p:1/0,b=m<1/0?m*g:1/0,y=-1;for(;s<=n;){let S=this.getVoxel(a,$,d);if(S)return{position:[e.x+s*r,e.y+s*l,e.z+s*o,],normal:[0===y?-c:0,1===y?-f:0,2===y?-u:0,],voxel:S};w<v?w<b?(a+=c,s=w,w+=_,y=0):(d+=u,s=b,b+=m,y=2):v<b?($+=f,s=v,v+=h,y=1):(d+=u,s=b,b+=m,y=2)}return null}serialize(){let e=Object.entries(this.cells).map(([e,t])=>({key:e,value:Array.from(t)}));return JSON.stringify({cellSize:this.cellSize,cells:e})}deserialize(e){let t=JSON.parse(e);this.cellSize=t.cellSize,this.cells=t.cells.reduce((e,{key:t,value:r})=>(e[t]=new Uint8Array(r),e),{})}}VoxelWorld.faces=[{dir:[-1,0,0],corners:[[0,1,0],[0,0,0],[0,1,1],[0,0,1],]},{dir:[1,0,0],corners:[[1,1,1],[1,0,1],[1,1,0],[1,0,0],]},{dir:[0,-1,0],corners:[[1,0,1],[0,0,1],[1,0,0],[0,0,0],]},{dir:[0,1,0],corners:[[0,1,1],[1,1,1],[0,1,0],[1,1,0],]},{dir:[0,0,-1],corners:[[1,0,0],[0,0,0],[1,1,0],[0,1,0],]},{dir:[0,0,1],corners:[[0,0,1],[1,0,1],[0,1,1],[1,1,1],]},];class Reticle extends e.Mesh{constructor(){super(new e.RingBufferGeometry(.1,.12,32).rotateX(-Math.PI/2),new e.MeshStandardMaterial({color:65280,emissive:65280,emissiveIntensity:.5,metalness:.1,roughness:.75,side:e.DoubleSide})),this.matrixAutoUpdate=!1,this.visible=!1}}function placeVoxelArtAtReticle(t,r,l){let{positions:o,normals:i,colors:n,indices:s}=l.generateGeometryDataForCell(0,0,0),a=new e.BufferGeometry;a.setAttribute("position",new e.BufferAttribute(new Float32Array(o),3)),a.setAttribute("normal",new e.BufferAttribute(new Float32Array(i),3)),a.setAttribute("color",new e.BufferAttribute(new Float32Array(n),3)),a.setIndex(s),a.computeBoundingBox();let $=new e.MeshLambertMaterial({vertexColors:!0,side:e.DoubleSide}),d=new e.Mesh(a,$);d.scale.set(.01,.01,.01);let c=-(.01*a.boundingBox.min.y),f=-.005*(a.boundingBox.max.x-a.boundingBox.min.x),u=-.005*(a.boundingBox.max.z-a.boundingBox.min.z);d.position.setFromMatrixPosition(t.matrix),d.position.y+=c,d.position.x+=f,d.position.z+=u,d.quaternion.setFromRotationMatrix(t.matrix),r.add(d)}function clearScene(e){let t=new Set(["Light","DirectionalLight","AmbientLight","Reticle"]);for(let r=e.children.length-1;r>=0;r--){let l=e.children[r];t.has(l.constructor.name)||e.remove(l)}}async function setupARButton(e,t,l){let o=r.createButton(e,{requiredFeatures:["hit-test"]}),i=document.getElementById("arButtonCustom");await navigator.xr.isSessionSupported("immersive-ar")&&(i.textContent="Enter AR",i.className="btn btn-success",i.disabled=!1,i.addEventListener("click",()=>{document.body.appendChild(o),o.click()}));let n;e.xr.addEventListener("sessionstart",async()=>{let r=e.xr.getSession();clearScene(n=t.clone()),n.background=null;let o=new Reticle;n.add(o);let i=!1,s=await r.requestReferenceSpace("viewer"),a=await r.requestHitTestSource({space:s});e.setAnimationLoop(()=>{let t=e.xr.getFrame();if(t){let r=t.getHitTestResults(a);if(r.length>0){let s=r[0],$=s.getPose(e.xr.getReferenceSpace());$&&(o.visible=!i,o.matrix.fromArray($.transform.matrix))}else o.visible=!1}e.render(n,l)}),r.addEventListener("select",()=>{o.visible&&!i&&(placeVoxelArtAtReticle(o,n,world),i=!0,o.visible=!1)})}),e.xr.addEventListener("sessionend",()=>{document.getElementById("ARButton").remove(),e.setAnimationLoop(null),n.traverse(e=>{e.geometry&&e.geometry.dispose(),e.material&&e.material.dispose()}),e.render(t,l)})}let world;function main(){let r=document.querySelector("#c"),l=new e.WebGLRenderer({antialias:!0,canvas:r,alpha:!0});l.xr.enabled=!0;let o=new e.PerspectiveCamera(75,2,.1,1e3);o.position.set(-9.6,25.6,-9.6);let i=new t(o,r);i.target.set(16,32/3,16),i.update();let n=new e.Scene;function s(t,r,l,o,i,s){let a=new e.DirectionalLight(16777215,.45);a.position.set(t,r,l),a.target.position.set(o,i,s),n.add(a),n.add(a.target)}n.background=new e.Color("lightgrey"),s(-1,32,4,0,16,0),s(1,32,-2,0,16,0),!function t(){let r=new e.AmbientLight(16777215,.35);n.add(r)}(),world=new VoxelWorld({cellSize:32});let a=new e.MeshLambertMaterial({vertexColors:!0,side:e.DoubleSide,transparent:!1}),$={};function d(t,r,l){let o=Math.floor(t/32),i=Math.floor(r/32),s=Math.floor(l/32),d=world.computeCellId(t,r,l),c=$[d],f=c?c.geometry:new e.BufferGeometry,{positions:u,normals:_,colors:h,indices:m}=world.generateGeometryDataForCell(o,i,s);f.setAttribute("position",new e.BufferAttribute(new Float32Array(u),3)),f.setAttribute("normal",new e.BufferAttribute(new Float32Array(_),3)),f.setAttribute("color",new e.BufferAttribute(new Float32Array(h),3)),f.setIndex(m),f.computeBoundingSphere(),c||((c=new e.Mesh(f,a)).name=d,$[d]=c,n.add(c),c.position.set(32*o,32*i,32*s))}let c=[[0,0,0],[-1,0,0],[1,0,0],[0,-1,0],[0,1,0],[0,0,-1],[0,0,1]];function f(e,t,r){let l={};for(let o of c){let i=e+o[0],n=t+o[1],s=r+o[2],a=world.computeCellId(i,n,s);l[a]||(l[a]=!0,d(i,n,s))}}function u(){for(let e=0;e<32;++e)for(let t=0;t<32;++t)world.setVoxel(t,0,e,1);f(1,1,1)}function _(){Object.keys(world.cells).forEach(e=>{let[t,r,l]=e.split(",").map(Number);d(t*world.cellSize,r*world.cellSize,l*world.cellSize)})}function h(){let e=world.serialize();localStorage.setItem("worldData",e)}!function e(){if(location.hash){let t=location.hash.substring(1);try{let r=atob(decodeURIComponent(t)),l=pako.inflate(r,{to:"string"});world.deserialize(l),_(),console.log("World loaded from URL hash."),localStorage.setItem("worldData",l),history.pushState("",document.title,location.pathname+location.search)}catch(o){console.error("Failed to load world from hash",o)}}else{let i=localStorage.getItem("worldData");i?(world.deserialize(i),_(),console.log("World loaded from local storage.")):u()}}(),window.resetWorld=function e(){Object.keys(world.cells).forEach(e=>{let t=world.cells[e];t.fill(0)}),Object.keys(world.cells).forEach(e=>{let[t,r,l]=e.split(",").map(Number);d(t*world.cellSize,r*world.cellSize,l*world.cellSize)}),u(),h(),console.log("World has been reset to initial state.")},document.querySelectorAll("#ui .tiles input[type=radio][name=voxel]").forEach(e=>{e.addEventListener("change",function(){this.checked&&h()})}),window.addEventListener("beforeunload",h);let m=!1;function x(){if(m=void 0,function e(t){let r=t.domElement,l=r.clientWidth,o=r.clientHeight,i=r.width!==l||r.height!==o;return i&&t.setSize(l,o,!1),i}(l)){let e=l.domElement;o.aspect=e.clientWidth/e.clientHeight,o.updateProjectionMatrix()}i.update(),l.render(n,o)}function p(){m||(m=!0,requestAnimationFrame(x))}x();let g=-1,w;function v(){this.id===w?(this.checked=!1,w=void 0,g=-1):(w=this.id,g=parseInt(this.value))}document.querySelectorAll("#ui .tiles input[type=radio][name=voxel]").forEach(e=>{e.addEventListener("click",v)});let b={x:0,y:0};function y(e){b.moveX+=Math.abs(b.x-e.clientX),b.moveY+=Math.abs(b.y-e.clientY)}function S(t){b.moveX<5&&b.moveY<5&&function t(l){if(-1===g)return;let i=function e(t){let l=r.getBoundingClientRect();return{x:(t.clientX-l.left)*r.width/l.width,y:(t.clientY-l.top)*r.height/l.height}}(l),n=i.x/r.width*2-1,s=-(i.y/r.height*2)+1,a=new e.Vector3,$=new e.Vector3;a.setFromMatrixPosition(o.matrixWorld),$.set(n,s,1).unproject(o);let d=world.intersectRay(a,$);if(d){let c=l.shiftKey?0:g,u=d.position.map((e,t)=>e+d.normal[t]*(c>0?.5:-.5));world.setVoxel(...u,c),f(...u),p()}}(t),window.removeEventListener("pointermove",y),window.removeEventListener("pointerup",S)}r.addEventListener("pointerdown",e=>{var t;e.preventDefault(),t=e,b.x=t.clientX,b.y=t.clientY,b.moveX=0,b.moveY=0,window.addEventListener("pointermove",y),window.addEventListener("pointerup",S)},{passive:!1}),r.addEventListener("touchstart",e=>{e.preventDefault()},{passive:!1}),i.addEventListener("change",p),window.addEventListener("resize",p),l.setAnimationLoop(()=>{l.render(n,o)}),setupARButton(l,n,o)}function serializeToBase64(){let e=world.serialize(),t=pako.deflate(e,{to:"string"});return encodeURIComponent(btoa(t))}function getShareURL(){return`${location.origin}${location.pathname}#${serializeToBase64()}`}function exportWorldQRCode(){if(!world){console.error("World is not initialized.");return}let e=getShareURL();QRCode.toCanvas(document.getElementById("qrCanvas"),e,function(e){e?console.error("QR Code Error: ",e):console.log("QR code successfully generated!")})}window.exportWorldQRCode=exportWorldQRCode,window.getShareURL=getShareURL,main();
+import * as THREE from 'three';
+import {
+    OrbitControls
+} from 'three/addons/controls/OrbitControls.js';
+import { ARButton } from 'three/addons/webxr/ARButton.js';
+
+class VoxelWorld {
+
+    constructor(options) {
+        this.cellSize = options.cellSize;
+        const {
+            cellSize
+        } = this;
+        this.cellSliceSize = cellSize * cellSize;
+        this.cells = {};
+
+    }
+    computeVoxelOffset(x, y, z) {
+
+        const {
+            cellSize,
+            cellSliceSize
+        } = this;
+        const voxelX = THREE.MathUtils.euclideanModulo(x, cellSize) | 0;
+        const voxelY = THREE.MathUtils.euclideanModulo(y, cellSize) | 0;
+        const voxelZ = THREE.MathUtils.euclideanModulo(z, cellSize) | 0;
+        return voxelY * cellSliceSize +
+            voxelZ * cellSize +
+            voxelX;
+
+    }
+    computeCellId(x, y, z) {
+
+        const {
+            cellSize
+        } = this;
+        const cellX = Math.floor(x / cellSize);
+        const cellY = Math.floor(y / cellSize);
+        const cellZ = Math.floor(z / cellSize);
+        return `${cellX},${cellY},${cellZ}`;
+
+    }
+    addCellForVoxel(x, y, z) {
+
+        const cellId = this.computeCellId(x, y, z);
+        let cell = this.cells[cellId];
+        if (!cell) {
+
+            const {
+                cellSize
+            } = this;
+            cell = new Uint8Array(cellSize * cellSize * cellSize);
+            this.cells[cellId] = cell;
+
+        }
+
+        return cell;
+
+    }
+    getCellForVoxel(x, y, z) {
+
+        return this.cells[this.computeCellId(x, y, z)];
+
+    }
+    setVoxel(x, y, z, v, addCell = true) {
+
+        let cell = this.getCellForVoxel(x, y, z);
+        if (!cell) {
+
+            if (!addCell) {
+
+                return;
+
+            }
+
+            cell = this.addCellForVoxel(x, y, z);
+
+        }
+
+        const voxelOffset = this.computeVoxelOffset(x, y, z);
+        cell[voxelOffset] = v;
+
+    }
+    getVoxel(x, y, z) {
+
+        const cell = this.getCellForVoxel(x, y, z);
+        if (!cell) {
+
+            return 0;
+
+        }
+
+        const voxelOffset = this.computeVoxelOffset(x, y, z);
+        return cell[voxelOffset];
+
+    }
+    generateGeometryDataForCell(cellX, cellY, cellZ) {
+        const {
+            cellSize
+        } = this;
+        const positions = [];
+        const normals = [];
+        const indices = [];
+        const colors = []; // Add an array to hold color values
+        const startX = cellX * cellSize;
+        const startY = cellY * cellSize;
+        const startZ = cellZ * cellSize;
+
+        for (let y = 0; y < cellSize; ++y) {
+            const voxelY = startY + y;
+            for (let z = 0; z < cellSize; ++z) {
+                const voxelZ = startZ + z;
+                for (let x = 0; x < cellSize; ++x) {
+                    const voxelX = startX + x;
+                    const voxel = this.getVoxel(voxelX, voxelY, voxelZ);
+                    if (voxel) {
+                        const colorPalette = [
+                            0x000000, 0xffffff, 0x000000, 0xff0000, 0xff5500,
+                            0xffaa00, 0xffff00, 0x00ff00, 0x00ffff, 0x0055ff,
+                            0x0000ff, 0xff00ff
+                        ];
+                        const colorIndex = voxel % colorPalette.length;
+                        const voxelColor = new THREE.Color(colorPalette[colorIndex]);
+                        for (const {
+                            dir,
+                            corners
+                        }
+                            of VoxelWorld.faces) {
+                            const neighbor = this.getVoxel(
+                                voxelX + dir[0],
+                                voxelY + dir[1],
+                                voxelZ + dir[2]
+                            );
+                            if (!neighbor) {
+                                const ndx = positions.length / 3;
+                                for (const corner of corners) {
+                                    positions.push(corner[0] + x, corner[1] + y, corner[2] + z);
+                                    normals.push(...dir);
+                                    colors.push(voxelColor.r, voxelColor.g, voxelColor.b);
+                                }
+                                indices.push(
+                                    ndx, ndx + 1, ndx + 2,
+                                    ndx + 2, ndx + 1, ndx + 3,
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return {
+            positions,
+            normals,
+            colors,
+            indices,
+        };
+    }
+
+
+    // from
+    // https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.42.3443&rep=rep1&type=pdf
+    intersectRay(start, end) {
+
+        let dx = end.x - start.x;
+        let dy = end.y - start.y;
+        let dz = end.z - start.z;
+        const lenSq = dx * dx + dy * dy + dz * dz;
+        const len = Math.sqrt(lenSq);
+
+        dx /= len;
+        dy /= len;
+        dz /= len;
+
+        let t = 0.0;
+        let ix = Math.floor(start.x);
+        let iy = Math.floor(start.y);
+        let iz = Math.floor(start.z);
+
+        const stepX = (dx > 0) ? 1 : -1;
+        const stepY = (dy > 0) ? 1 : -1;
+        const stepZ = (dz > 0) ? 1 : -1;
+
+        const txDelta = Math.abs(1 / dx);
+        const tyDelta = Math.abs(1 / dy);
+        const tzDelta = Math.abs(1 / dz);
+
+        const xDist = (stepX > 0) ? (ix + 1 - start.x) : (start.x - ix);
+        const yDist = (stepY > 0) ? (iy + 1 - start.y) : (start.y - iy);
+        const zDist = (stepZ > 0) ? (iz + 1 - start.z) : (start.z - iz);
+
+        // location of nearest voxel boundary, in units of t
+        let txMax = (txDelta < Infinity) ? txDelta * xDist : Infinity;
+        let tyMax = (tyDelta < Infinity) ? tyDelta * yDist : Infinity;
+        let tzMax = (tzDelta < Infinity) ? tzDelta * zDist : Infinity;
+
+        let steppedIndex = -1;
+
+        // main loop along raycast vector
+        while (t <= len) {
+
+            const voxel = this.getVoxel(ix, iy, iz);
+            if (voxel) {
+
+                return {
+                    position: [
+                        start.x + t * dx,
+                        start.y + t * dy,
+                        start.z + t * dz,
+                    ],
+                    normal: [
+                        steppedIndex === 0 ? -stepX : 0,
+                        steppedIndex === 1 ? -stepY : 0,
+                        steppedIndex === 2 ? -stepZ : 0,
+                    ],
+                    voxel,
+                };
+
+            }
+
+            // advance t to next nearest voxel boundary
+            if (txMax < tyMax) {
+
+                if (txMax < tzMax) {
+
+                    ix += stepX;
+                    t = txMax;
+                    txMax += txDelta;
+                    steppedIndex = 0;
+
+                } else {
+
+                    iz += stepZ;
+                    t = tzMax;
+                    tzMax += tzDelta;
+                    steppedIndex = 2;
+
+                }
+
+            } else {
+
+                if (tyMax < tzMax) {
+
+                    iy += stepY;
+                    t = tyMax;
+                    tyMax += tyDelta;
+                    steppedIndex = 1;
+
+                } else {
+
+                    iz += stepZ;
+                    t = tzMax;
+                    tzMax += tzDelta;
+                    steppedIndex = 2;
+
+                }
+
+            }
+
+        }
+
+        return null;
+
+    }
+
+    serialize() {
+        const cells = Object.entries(this.cells).map(([key, value]) => ({
+            key,
+            value: Array.from(value)
+        }));
+        return JSON.stringify({ cellSize: this.cellSize, cells });
+    }
+
+    deserialize(data) {
+        const parsed = JSON.parse(data);
+        this.cellSize = parsed.cellSize;
+        this.cells = parsed.cells.reduce((acc, { key, value }) => {
+            acc[key] = new Uint8Array(value);
+            return acc;
+        }, {});
+    }
+
+}
+
+VoxelWorld.faces = [{ // left
+    dir: [-1, 0, 0],
+    corners: [
+        [0, 1, 0],
+        [0, 0, 0],
+        [0, 1, 1],
+        [0, 0, 1],
+    ],
+},
+{ // right
+    dir: [1, 0, 0],
+    corners: [
+        [1, 1, 1],
+        [1, 0, 1],
+        [1, 1, 0],
+        [1, 0, 0],
+    ],
+},
+{ // bottom
+    dir: [0, -1, 0],
+    corners: [
+        [1, 0, 1],
+        [0, 0, 1],
+        [1, 0, 0],
+        [0, 0, 0],
+    ],
+},
+{ // top
+    dir: [0, 1, 0],
+    corners: [
+        [0, 1, 1],
+        [1, 1, 1],
+        [0, 1, 0],
+        [1, 1, 0],
+    ],
+},
+{ // back
+    dir: [0, 0, -1],
+    corners: [
+        [1, 0, 0],
+        [0, 0, 0],
+        [1, 1, 0],
+        [0, 1, 0],
+    ],
+},
+{ // front
+    dir: [0, 0, 1],
+    corners: [
+        [0, 0, 1],
+        [1, 0, 1],
+        [0, 1, 1],
+        [1, 1, 1],
+    ],
+},
+];
+
+
+
+class Reticle extends THREE.Mesh {
+    constructor() {
+        super(
+            new THREE.RingBufferGeometry(0.1, 0.12, 32).rotateX(-Math.PI / 2),
+            new THREE.MeshStandardMaterial({
+                color: 0x00FF00, // Bright green
+                emissive: 0x00FF00, // Same as the color for a slight glow effect
+                emissiveIntensity: 0.5,
+                metalness: 0.1,
+                roughness: 0.75,
+                side: THREE.DoubleSide
+            })
+        );
+        this.matrixAutoUpdate = false;
+        this.visible = false;
+    }
+}
+
+function placeVoxelArtAtReticle(reticle, scene, world) {
+    // Assume cell coordinates define which part of the voxel world to render
+    const cellX = 0;
+    const cellY = 0;
+    const cellZ = 0;
+
+    // Generate geometry data from voxel world
+    const { positions, normals, colors, indices } = world.generateGeometryDataForCell(cellX, cellY, cellZ);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+    geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3));
+    geometry.setIndex(indices);
+    geometry.computeBoundingBox();
+
+    // Create a mesh with the geometry
+    const material = new THREE.MeshLambertMaterial({
+        vertexColors: true,
+        side: THREE.DoubleSide
+    });
+    const voxelMesh = new THREE.Mesh(geometry, material);
+
+    // Scale the mesh to make it smaller or larger
+    const scaleFactor = 0.01; // Adjust this value to scale the voxel art appropriately
+    voxelMesh.scale.set(scaleFactor, scaleFactor, scaleFactor);
+
+    // Now we adjust the position based on the scaled bounding box
+    const scaledHeightOffset = scaleFactor * -geometry.boundingBox.min.y; // Adjust for bottom of the box
+    const scaledXOffset = scaleFactor * -0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x); // Center X
+    const scaledZOffset = scaleFactor * -0.5 * (geometry.boundingBox.max.z - geometry.boundingBox.min.z); // Center Z
+
+    voxelMesh.position.setFromMatrixPosition(reticle.matrix);
+    voxelMesh.position.y += scaledHeightOffset;
+    voxelMesh.position.x += scaledXOffset;
+    voxelMesh.position.z += scaledZOffset;
+
+    // Apply rotation to align with the world, if necessary
+    voxelMesh.quaternion.setFromRotationMatrix(reticle.matrix);
+
+    scene.add(voxelMesh);
+}
+
+
+
+
+function clearScene(scene) {
+    const preservedObjects = new Set(['Light', 'DirectionalLight', 'AmbientLight', 'Reticle']);
+
+    for (let i = scene.children.length - 1; i >= 0; i--) {
+        const obj = scene.children[i];
+        if (!preservedObjects.has(obj.constructor.name)) {
+            scene.remove(obj);
+        }
+    }
+}
+
+async function setupARButton(renderer, originalScene, camera) {
+    const arButton = ARButton.createButton(renderer, {
+        requiredFeatures: ['hit-test']
+    });
+
+    const arButtonElement = document.getElementById('arButtonCustom');
+
+    // Check if AR is supported
+    if (await navigator.xr.isSessionSupported('immersive-ar')) {
+        // Update the button text and class
+        arButtonElement.textContent = 'Enter AR';
+        arButtonElement.className = 'btn btn-success';
+        arButtonElement.disabled = false;
+
+        // Add event listener to trigger AR functionality when clicked
+        arButtonElement.addEventListener('click', () => {
+            document.body.appendChild(arButton);
+            arButton.click();
+        });
+    }
+
+    let arScene;
+
+    renderer.xr.addEventListener('sessionstart', async () => {
+        const session = renderer.xr.getSession();
+
+        // Clone the original scene
+        arScene = originalScene.clone();
+
+        // Clear the cloned AR scene, except essential objects like lights or UI elements
+        clearScene(arScene);
+        arScene.background = null;
+
+        const reticle = new Reticle();
+        arScene.add(reticle);
+        let objectPlaced = false;
+
+        const viewerSpace = await session.requestReferenceSpace('viewer');
+        const hitTestSource = await session.requestHitTestSource({ space: viewerSpace });
+
+        renderer.setAnimationLoop(() => {
+            const frame = renderer.xr.getFrame();
+            if (frame) {
+                const hitTestResults = frame.getHitTestResults(hitTestSource);
+                if (hitTestResults.length > 0) {
+                    const hit = hitTestResults[0];
+                    const pose = hit.getPose(renderer.xr.getReferenceSpace());
+                    if (pose) {
+                        reticle.visible = !objectPlaced;
+                        reticle.matrix.fromArray(pose.transform.matrix);
+                    }
+                } else {
+                    reticle.visible = false;
+                }
+            }
+            renderer.render(arScene, camera);
+        });
+
+        session.addEventListener('select', () => {
+            if (reticle.visible && !objectPlaced) {
+                placeVoxelArtAtReticle(reticle, arScene, world);
+                objectPlaced = true;
+                reticle.visible = false;
+            }
+        });
+    });
+
+    renderer.xr.addEventListener('sessionend', () => {
+        document.getElementById('ARButton').remove();
+        renderer.setAnimationLoop(null);
+
+        // Dispose of the AR scene
+        arScene.traverse(object => {
+            if (object.geometry) object.geometry.dispose();
+            if (object.material) object.material.dispose();
+        });
+
+        // Switch back to the original scene
+        renderer.render(originalScene, camera);
+    });
+}
+
+
+
+
+let world;
+
+function main() {
+
+    const canvas = document.querySelector('#c');
+    const renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        canvas,
+        alpha: true,
+        preserveDrawingBuffer: true
+    });
+    renderer.xr.enabled = true;
+
+    const cellSize = 32;
+
+    const fov = 75;
+    const aspect = 2; // the canvas default
+    const near = 0.1;
+    const far = 1000;
+    const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+    camera.position.set(-cellSize * .3, cellSize * .8, -cellSize * .3);
+
+    const controls = new OrbitControls(camera, canvas);
+    controls.target.set(cellSize / 2, cellSize / 3, cellSize / 2);
+    controls.update();
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('lightgrey');
+
+
+    function addLight(x, y, z, targetX, targetY, targetZ) {
+        const color = 0xFFFFFF;
+        const intensity = .45;
+        const light = new THREE.DirectionalLight(color, intensity);
+        light.position.set(x, y, z);
+        light.target.position.set(targetX, targetY, targetZ);
+        scene.add(light);
+        scene.add(light.target); // Don't forget to add the target to the scene
+    }
+
+    // Example setup, adjust angles as necessary
+    addLight(-1, cellSize, 4, 0, cellSize * 0.5, 0); // Pointing towards the center
+    addLight(1, cellSize, -2, 0, cellSize * 0.5, 0); // Pointing towards the center
+
+
+    function addAmbientLight() {
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.35); // soft white light
+        scene.add(ambientLight);
+    }
+    addAmbientLight();
+
+
+    world = new VoxelWorld({
+        cellSize
+    });
+
+    const material = new THREE.MeshLambertMaterial({
+        vertexColors: true,
+        side: THREE.DoubleSide,
+        transparent: false
+    });
+
+    const cellIdToMesh = {};
+
+    function updateCellGeometry(x, y, z) {
+        const cellX = Math.floor(x / cellSize);
+        const cellY = Math.floor(y / cellSize);
+        const cellZ = Math.floor(z / cellSize);
+        const cellId = world.computeCellId(x, y, z);
+        let mesh = cellIdToMesh[cellId];
+        const geometry = mesh ? mesh.geometry : new THREE.BufferGeometry();
+
+        const {
+            positions,
+            normals,
+            colors,
+            indices
+        } = world.generateGeometryDataForCell(cellX, cellY, cellZ);
+        const positionNumComponents = 3;
+        geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), positionNumComponents));
+        const normalNumComponents = 3;
+        geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), normalNumComponents));
+        const colorNumComponents = 3; // There are 3 components (R, G, B) per vertex color
+        geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), colorNumComponents));
+        geometry.setIndex(indices);
+        geometry.computeBoundingSphere();
+
+        if (!mesh) {
+            mesh = new THREE.Mesh(geometry, material);
+            mesh.name = cellId;
+            cellIdToMesh[cellId] = mesh;
+            scene.add(mesh);
+            mesh.position.set(cellX * cellSize, cellY * cellSize, cellZ * cellSize);
+        }
+    }
+
+    const neighborOffsets = [
+        [0, 0, 0], // self
+        [-1, 0, 0], // left
+        [1, 0, 0], // right
+        [0, -1, 0], // down
+        [0, 1, 0], // up
+        [0, 0, -1], // back
+        [0, 0, 1], // front
+    ];
+
+    function updateVoxelGeometry(x, y, z) {
+
+        const updatedCellIds = {};
+        for (const offset of neighborOffsets) {
+
+            const ox = x + offset[0];
+            const oy = y + offset[1];
+            const oz = z + offset[2];
+            const cellId = world.computeCellId(ox, oy, oz);
+            if (!updatedCellIds[cellId]) {
+
+                updatedCellIds[cellId] = true;
+                updateCellGeometry(ox, oy, oz);
+
+            }
+
+        }
+
+    }
+
+    function generatePlane() {
+        for (let z = 0; z < cellSize; ++z) {
+            for (let x = 0; x < cellSize; ++x) {
+                world.setVoxel(x, 0, z, 1);
+            }
+        }
+        updateVoxelGeometry(1, 1, 1);
+    }
+
+    function initializeWorld() {
+        // Priority to URL hash
+        if (location.hash) {
+            const hashData = location.hash.substring(1); // Remove the '#' character
+            try {
+                const compressedData = atob(decodeURIComponent(hashData));
+                const data = pako.inflate(compressedData, { to: 'string' });
+                world.deserialize(data);
+                loadCells();
+                console.log("World loaded from URL hash.");
+                
+                // Update local storage with new data
+                localStorage.setItem('worldData', data);
+                
+                // Clear the URL hash
+                history.pushState("", document.title, location.pathname + location.search);
+            } catch (e) {
+                console.error("Failed to load world from hash", e);
+            }
+        } else {
+            // Fallback to local storage
+            const localData = localStorage.getItem('worldData');
+            if (localData) {
+                world.deserialize(localData);
+                loadCells();
+                console.log("World loaded from local storage.");
+            } else {
+                // Default initialization if no data found anywhere
+                generatePlane();
+            }
+        }
+    }
+
+    initializeWorld();
+
+    function loadCells() {
+        Object.keys(world.cells).forEach(cellId => {
+            const [x, y, z] = cellId.split(',').map(Number);
+            updateCellGeometry(x * world.cellSize, y * world.cellSize, z * world.cellSize);
+        });
+    }
+
+    function resetWorld() {
+        Object.keys(world.cells).forEach(cellId => {
+            const cell = world.cells[cellId];
+            cell.fill(0);
+        });
+    
+        // Update geometry for all cells
+        Object.keys(world.cells).forEach(cellId => {
+            const [x, y, z] = cellId.split(',').map(Number);
+            updateCellGeometry(x * world.cellSize, y * world.cellSize, z * world.cellSize);
+        });
+        generatePlane();
+    
+        // Save the reset world state to local storage
+        saveWorldState();
+    
+        // Optionally, log the reset action
+        console.log("World has been reset to initial state.");
+    }
+    window.resetWorld = resetWorld;
+
+    function saveWorldState() {
+        const data = world.serialize();
+        localStorage.setItem('worldData', data);
+    }
+
+    document.querySelectorAll('#ui .tiles input[type=radio][name=voxel]').forEach((elem) => {
+        elem.addEventListener('change', function() {
+            if (this.checked) {
+                saveWorldState(); // Save world state when a voxel is changed
+            }
+        });
+    });
+    window.addEventListener('beforeunload', saveWorldState);
+
+    function resizeRendererToDisplaySize(renderer) {
+
+        const canvas = renderer.domElement;
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        const needResize = canvas.width !== width || canvas.height !== height;
+        if (needResize) {
+
+            renderer.setSize(width, height, false);
+
+        }
+
+        return needResize;
+
+    }
+
+    let renderRequested = false;
+
+    function render() {
+
+        renderRequested = undefined;
+
+        if (resizeRendererToDisplaySize(renderer)) {
+
+            const canvas = renderer.domElement;
+            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera.updateProjectionMatrix();
+
+        }
+
+        controls.update();
+        renderer.render(scene, camera);
+
+    }
+
+    render();
+
+    function requestRenderIfNotRequested() {
+
+        if (!renderRequested) {
+
+            renderRequested = true;
+            requestAnimationFrame(render);
+
+        }
+
+    }
+
+    let currentVoxel = -1;
+    let currentId;
+
+    document.querySelectorAll('#ui .tiles input[type=radio][name=voxel]').forEach((elem) => {
+
+        elem.addEventListener('click', allowUncheck);
+
+    });
+
+    function allowUncheck() {
+
+        if (this.id === currentId) {
+
+            this.checked = false;
+            currentId = undefined;
+            currentVoxel = -1;
+
+        } else {
+
+            currentId = this.id;
+            currentVoxel = parseInt(this.value);
+
+        }
+
+    }
+
+    function getCanvasRelativePosition(event) {
+
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: (event.clientX - rect.left) * canvas.width / rect.width,
+            y: (event.clientY - rect.top) * canvas.height / rect.height,
+        };
+
+    }
+
+    function placeVoxel(event) {
+        if (currentVoxel === -1) return;
+        const pos = getCanvasRelativePosition(event);
+        const x = (pos.x / canvas.width) * 2 - 1;
+        const y = (pos.y / canvas.height) * -2 + 1; // note we flip Y
+
+        const start = new THREE.Vector3();
+        const end = new THREE.Vector3();
+        start.setFromMatrixPosition(camera.matrixWorld);
+        end.set(x, y, 1).unproject(camera);
+
+        const intersection = world.intersectRay(start, end);
+        if (intersection) {
+
+            const voxelId = event.shiftKey ? 0 : currentVoxel;
+            // the intersection point is on the face. That means
+            // the math imprecision could put us on either side of the face.
+            // so go half a normal into the voxel if removing (currentVoxel = 0)
+            // our out of the voxel if adding (currentVoxel  > 0)
+            const pos = intersection.position.map((v, ndx) => {
+
+                return v + intersection.normal[ndx] * (voxelId > 0 ? 0.5 : -0.5);
+
+            });
+            world.setVoxel(...pos, voxelId);
+            updateVoxelGeometry(...pos);
+            requestRenderIfNotRequested();
+
+        }
+
+    }
+
+    const mouse = {
+        x: 0,
+        y: 0,
+    };
+
+    function recordStartPosition(event) {
+
+        mouse.x = event.clientX;
+        mouse.y = event.clientY;
+        mouse.moveX = 0;
+        mouse.moveY = 0;
+
+    }
+
+    function recordMovement(event) {
+
+        mouse.moveX += Math.abs(mouse.x - event.clientX);
+        mouse.moveY += Math.abs(mouse.y - event.clientY);
+
+    }
+
+    function placeVoxelIfNoMovement(event) {
+
+        if (mouse.moveX < 5 && mouse.moveY < 5) {
+
+            placeVoxel(event);
+
+        }
+
+        window.removeEventListener('pointermove', recordMovement);
+        window.removeEventListener('pointerup', placeVoxelIfNoMovement);
+
+    }
+
+    canvas.addEventListener('pointerdown', (event) => {
+
+        event.preventDefault();
+        recordStartPosition(event);
+        window.addEventListener('pointermove', recordMovement);
+        window.addEventListener('pointerup', placeVoxelIfNoMovement);
+
+    }, {
+        passive: false
+    });
+    canvas.addEventListener('touchstart', (event) => {
+
+        // prevent scrolling
+        event.preventDefault();
+
+    }, {
+        passive: false
+    });
+
+    controls.addEventListener('change', requestRenderIfNotRequested);
+    window.addEventListener('resize', requestRenderIfNotRequested);
+    renderer.setAnimationLoop(() => {
+        renderer.render(scene, camera);
+    });
+    setupARButton(renderer, scene, camera);
+}
+
+function serializeToBase64() {
+    const data = world.serialize();
+    const compressedData = pako.deflate(data, { to: 'string' });
+    return encodeURIComponent(btoa(compressedData));
+}
+
+function getShareURL(){
+    return `${location.origin}${location.pathname}#${serializeToBase64()}`;
+}
+
+function exportWorldQRCode() {
+    if (!world) {
+        console.error("World is not initialized.");
+        return;
+    }
+    const url = getShareURL();
+    QRCode.toCanvas(document.getElementById('qrCanvas'), url, function (error) {
+        if (error) {
+            console.error("QR Code Error: ", error);
+        } else {
+            console.log('QR code successfully generated!');
+        }
+    });
+}
+window.exportWorldQRCode = exportWorldQRCode;
+window.getShareURL = getShareURL;
+
+
+
+
+main();

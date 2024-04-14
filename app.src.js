@@ -506,7 +506,8 @@ function main() {
     const renderer = new THREE.WebGLRenderer({
         antialias: true,
         canvas,
-        alpha: true
+        alpha: true,
+        preserveDrawingBuffer: true
     });
     renderer.xr.enabled = true;
 
