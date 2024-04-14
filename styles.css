@@ -221,11 +221,20 @@ body {
     border: none;
     padding: 0;
 }
+
 .icon-button {
     padding: 0.5rem;
 }
 
-input[type="radio"][name="voxel"]:checked + label {
+input[type="radio"][name="voxel"]:checked+label {
     outline: none;
     box-shadow: none;
+}
+
+.custom-colors .tiles {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    gap: 10px;
+    /* Adds space between elements */
 }

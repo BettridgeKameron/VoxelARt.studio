@@ -51,11 +51,33 @@
                     <input type="radio" name="voxel" id="voxel8" value="8"><label for="voxel8"
                         style="background-color: #00ffff;" title="Cyan"></label>
                     <input type="radio" name="voxel" id="voxel9" value="9"><label for="voxel9"
-                        style="background-color: #0055ff;" title="Blue"></label>
+                        style="background-color: #4d94ff;" title="Blue"></label>
                     <input type="radio" name="voxel" id="voxel10" value="10"><label for="voxel10"
                         style="background-color: #0000ff;" title="Dark Blue"></label>
                     <input type="radio" name="voxel" id="voxel11" value="11"><label for="voxel11"
                         style="background-color: #ff00ff;" title="Magenta"></label>
+                </div>
+                <div class="custom-colors mt-3">
+                    <h6 class="text-muted">Custom Colors:</h6>
+                    <div class="tiles">
+                        <input type="radio" name="voxel" id="voxel12" value="12">
+                        <label for="voxel12" class="custom-color" data-color="#000000" title="Custom Color 1"></label>
+                        <input type="radio" name="voxel" id="voxel13" value="13">
+                        <label for="voxel13" class="custom-color" data-color="#000000" title="Custom Color 2"></label>
+                        <input type="radio" name="voxel" id="voxel14" value="14">
+                        <label for="voxel14" class="custom-color" data-color="#000000" title="Custom Color 3"></label>
+                        <input type="color" id="colorPicker1" value="#000000" style="display: none;">
+                        <input type="color" id="colorPicker2" value="#000000" style="display: none;">
+                        <input type="color" id="colorPicker3" value="#000000" style="display: none;">
+                    </div>
+                </div>
+                <div class="custom-colors mt-3">
+                    <h6 class="text-muted">Background Color:</h6>
+                    <div class="tiles">
+                        <input type="color" id="bgColorPicker" value="#d3d3d3"
+                            class="form-control form-control-color me-2">
+                        <button id="resetBgColor" class="btn btn-secondary">Reset BG</button>
+                    </div>
                 </div>
             </div>
         </div>

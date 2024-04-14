@@ -116,9 +116,14 @@ class VoxelWorld {
                     if (voxel) {
                         const colorPalette = [
                             0x000000, 0xffffff, 0x000000, 0xff0000, 0xff5500,
-                            0xffaa00, 0xffff00, 0x00ff00, 0x00ffff, 0x0055ff,
+                            0xffaa00, 0xffff00, 0x00ff00, 0x00ffff, 0x4d94ff,
                             0x0000ff, 0xff00ff
                         ];
+                        const customColorLabels = document.querySelectorAll('.custom-color');
+
+                        customColorLabels.forEach((label, index) => {
+                            colorPalette.push(parseInt(label.dataset.color.replace('#', '0x'), 16));
+                        });
                         const colorIndex = voxel % colorPalette.length;
                         const voxelColor = new THREE.Color(colorPalette[colorIndex]);
                         for (const {
@@ -267,7 +272,10 @@ class VoxelWorld {
             key,
             value: Array.from(value)
         }));
-        return JSON.stringify({ cellSize: this.cellSize, cells });
+        const customColorLabels = document.querySelectorAll('.custom-color');
+        const customColors = Array.from(customColorLabels).map(label => label.dataset.color);
+        const backgroundColor = bgColorPicker.value;
+        return JSON.stringify({ cellSize: this.cellSize, cells, customColors, backgroundColor });
     }
 
     deserialize(data) {
@@ -277,6 +285,18 @@ class VoxelWorld {
             acc[key] = new Uint8Array(value);
             return acc;
         }, {});
+        const customColorLabels = document.querySelectorAll('.custom-color');
+        parsed.customColors.forEach((color, index) => {
+            console.log(index, ': ', color);
+            customColorLabels[index].dataset.color = color;
+            customColorLabels[index].style.backgroundColor = color;
+        });
+
+        bgColorPicker.value = parsed.backgroundColor;
+
+        // Dispatch a custom event to indicate that the custom colors have been updated
+        const event = new CustomEvent('customColorsUpdated', { detail: parsed.customColors });
+        document.dispatchEvent(event);
     }
 
 }
@@ -525,8 +545,19 @@ function main() {
     controls.target.set(cellSize / 2, cellSize / 3, cellSize / 2);
     controls.update();
 
+    const bgColorPicker = document.getElementById('bgColorPicker');
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('lightgrey');
+
+    // Load background color from local storage
+    const storedBgColor = localStorage.getItem('bgColor') || '#d3d3d3';
+    bgColorPicker.value = storedBgColor;
+    scene.background = new THREE.Color(storedBgColor);
+
+    bgColorPicker.addEventListener('input', () => {
+        const selectedColor = bgColorPicker.value;
+        scene.background = new THREE.Color(selectedColor);
+        localStorage.setItem('bgColor', selectedColor);
+    });
 
 
     function addLight(x, y, z, targetX, targetY, targetZ) {
@@ -634,7 +665,7 @@ function main() {
         }
     }
     window.togglePlane = togglePlane;
-    
+
     function removePlane() {
         for (let z = 0; z < cellSize; ++z) {
             for (let x = 0; x < cellSize; ++x) {
@@ -644,7 +675,7 @@ function main() {
         updateVoxelGeometry(1, 1, 1);
         saveWorldState(); // Save the updated world state
     }
-    
+
     function generatePlane() {
         for (let z = 0; z < cellSize; ++z) {
             for (let x = 0; x < cellSize; ++x) {
@@ -654,7 +685,14 @@ function main() {
         updateVoxelGeometry(1, 1, 1);
         saveWorldState(); // Save the updated world state
     }
-    
+
+    function updateAllGeometry() {
+        Object.keys(world.cells).forEach(cellId => {
+            const [x, y, z] = cellId.split(',').map(Number);
+            updateVoxelGeometry(x * world.cellSize, y * world.cellSize, z * world.cellSize);
+        });
+    }
+
     function initializeWorld() {
         // Priority to URL hash
         if (location.hash) {
@@ -664,11 +702,24 @@ function main() {
                 const data = pako.inflate(compressedData, { to: 'string' });
                 world.deserialize(data);
                 loadCells();
+                updateAllGeometry(); // Update geometry immediately
+                const parsed = JSON.parse(data);
+                scene.background = new THREE.Color(parsed.backgroundColor); // Set the background color
+
+                // Update custom color labels and color pickers
+                const customColorLabels = document.querySelectorAll('.custom-color');
+                const colorPickers = document.querySelectorAll('#colorPicker1, #colorPicker2, #colorPicker3');
+                parsed.customColors.forEach((color, index) => {
+                    customColorLabels[index].dataset.color = color;
+                    customColorLabels[index].style.backgroundColor = color;
+                    colorPickers[index].value = color;
+                });
+
                 console.log("World loaded from URL hash.");
-                
+
                 // Update local storage with new data
                 localStorage.setItem('worldData', data);
-                
+
                 // Clear the URL hash
                 history.pushState("", document.title, location.pathname + location.search);
             } catch (e) {
@@ -680,6 +731,9 @@ function main() {
             if (localData) {
                 world.deserialize(localData);
                 loadCells();
+                updateAllGeometry(); // Update geometry immediately
+                const parsed = JSON.parse(localData);
+                scene.background = new THREE.Color(parsed.backgroundColor); // Set the background color
                 console.log("World loaded from local storage.");
             } else {
                 // Default initialization if no data found anywhere
@@ -687,7 +741,7 @@ function main() {
             }
         }
     }
-    
+
     initializeWorld();
 
     function loadCells() {
@@ -702,7 +756,7 @@ function main() {
             const cell = world.cells[cellId];
             cell.fill(0);
         });
-    
+
         // Update geometry for all cells
         Object.keys(world.cells).forEach(cellId => {
             const [x, y, z] = cellId.split(',').map(Number);
@@ -711,10 +765,15 @@ function main() {
         generatePlane();
         redoStack.length = 0;
         undoStack.length = 0;
-    
+
+        const defaultBgColor = '#d3d3d3';
+        bgColorPicker.value = defaultBgColor;
+        scene.background = new THREE.Color(defaultBgColor);
+        localStorage.setItem('bgColor', defaultBgColor);
+
         // Save the reset world state to local storage
         saveWorldState();
-    
+
         // Optionally, log the reset action
         console.log("World has been reset to initial state.");
     }
@@ -726,7 +785,7 @@ function main() {
     }
 
     document.querySelectorAll('#ui .tiles input[type=radio][name=voxel]').forEach((elem) => {
-        elem.addEventListener('change', function() {
+        elem.addEventListener('change', function () {
             if (this.checked) {
                 saveWorldState(); // Save world state when a voxel is changed
             }
@@ -786,7 +845,7 @@ function main() {
     let currentId;
 
     document.querySelectorAll('#ui .tiles input[type=radio][name=voxel]').forEach((elem) => {
-        elem.addEventListener('click', function() {
+        elem.addEventListener('click', function () {
             if (this.id === currentId) {
                 this.checked = false;
                 currentId = undefined;
@@ -807,34 +866,34 @@ function main() {
         };
 
     }
-    
+
     function placeVoxel(event) {
         if (currentVoxel === -1) return;
         const pos = getCanvasRelativePosition(event);
         const x = (pos.x / canvas.width) * 2 - 1;
         const y = (pos.y / canvas.height) * -2 + 1; // note we flip Y
-    
+
         const start = new THREE.Vector3();
         const end = new THREE.Vector3();
         start.setFromMatrixPosition(camera.matrixWorld);
         end.set(x, y, 1).unproject(camera);
-    
+
         const intersection = world.intersectRay(start, end);
         if (intersection) {
             const voxelId = event.shiftKey ? 0 : currentVoxel;
             const pos = intersection.position.map((v, ndx) => {
                 return v + intersection.normal[ndx] * (voxelId > 0 ? 0.5 : -0.5);
             });
-    
+
             // Save the current state before making changes
             undoStack.push(world.serialize());
             redoStack.length = 0; // Clear the redo stack
-    
+
             // Remove the oldest state if the undo stack exceeds the limit
-            if (undoStack.length > 100) {
+            if (undoStack.length > 50) {
                 undoStack.shift();
             }
-    
+
             world.setVoxel(...pos, voxelId);
             updateVoxelGeometry(...pos);
             requestRenderIfNotRequested();
@@ -850,7 +909,7 @@ function main() {
             requestRenderIfNotRequested();
         }
     };
-    
+
     window.redo = function () {
         if (redoStack.length > 0) {
             const nextState = redoStack.pop();
@@ -920,6 +979,100 @@ function main() {
         renderer.render(scene, camera);
     });
     setupARButton(renderer, scene, camera);
+    const customColorLabels = document.querySelectorAll('.custom-color');
+    const colorPickers = document.querySelectorAll('#colorPicker1, #colorPicker2, #colorPicker3');
+
+    // Load custom colors from local storage
+    const storedColors = JSON.parse(localStorage.getItem('customColors')) || ['#000000', '#000000'];
+    customColorLabels.forEach((label, index) => {
+        label.dataset.color = storedColors[index];
+        label.style.backgroundColor = storedColors[index];
+    });
+
+    customColorLabels.forEach((label, index) => {
+        label.addEventListener('click', () => {
+            colorPickers[index].click();
+        });
+    });
+
+    colorPickers.forEach((picker, index) => {
+        picker.value = customColorLabels[index].dataset.color;
+        picker.addEventListener('input', () => {
+            const selectedColor = picker.value;
+            customColorLabels[index].dataset.color = selectedColor;
+            customColorLabels[index].style.backgroundColor = selectedColor;
+            localStorage.setItem('customColors', JSON.stringify([
+                customColorLabels[0].dataset.color,
+                customColorLabels[1].dataset.color,
+                customColorLabels[2].dataset.color
+            ]));
+        });
+    });
+    const resetBgColorButton = document.getElementById('resetBgColor');
+
+    resetBgColorButton.addEventListener('click', () => {
+        const defaultBgColor = '#d3d3d3';
+        bgColorPicker.value = defaultBgColor;
+        scene.background = new THREE.Color(defaultBgColor);
+        localStorage.setItem('bgColor', defaultBgColor);
+    });
+
+    document.addEventListener('customColorsUpdated', (event) => {
+        const customColors = event.detail;
+        colorPickers.forEach((picker, index) => {
+            picker.value = customColors[index];
+        });
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize local storage with default values if they don't exist
+        function initializeLocalStorage() {
+            // Default background color
+            if (!localStorage.getItem('bgColor')) {
+                localStorage.setItem('bgColor', '#d3d3d3');  // Default light grey background
+            }
+
+            // Default custom colors
+            if (!localStorage.getItem('customColors')) {
+                const defaultColors = ['#000000', '#000000', '#000000']; // Default black colors
+                localStorage.setItem('customColors', JSON.stringify(defaultColors));
+            }
+
+            // Default world data, if you have a default setup for new visitors
+            if (!localStorage.getItem('worldData')) {
+                // Assuming you have a function to serialize a default world setup
+                const defaultWorldData = {}; // You would need to define what a default world looks like
+                localStorage.setItem('worldData', JSON.stringify(defaultWorldData));
+            }
+
+            // Initialize UI elements with these values
+            document.getElementById('bgColorPicker').value = localStorage.getItem('bgColor');
+            const customColors = JSON.parse(localStorage.getItem('customColors'));
+            const colorPickers = document.querySelectorAll('#colorPicker1, #colorPicker2, #colorPicker3');
+            const customColorLabels = document.querySelectorAll('.custom-color');
+
+            customColors.forEach((color, index) => {
+                if (colorPickers[index]) {
+                    colorPickers[index].value = color;
+                }
+                if (customColorLabels[index]) {
+                    customColorLabels[index].style.backgroundColor = color;
+                    customColorLabels[index].dataset.color = color;
+                }
+            });
+        }
+
+        // Call the initialization function on page load
+        initializeLocalStorage();
+
+        // Additional code to update world or other UI elements based on stored values
+        // For example, you might want to load and display world data from local storage
+        if (world && localStorage.getItem('worldData')) {
+            world.deserialize(localStorage.getItem('worldData'));
+            // Assume you have a function to update the world display
+            updateWorldDisplay(); // You would define this function based on your application's needs
+        }
+    });
+
 }
 
 function serializeToBase64() {
@@ -928,7 +1081,7 @@ function serializeToBase64() {
     return encodeURIComponent(btoa(compressedData));
 }
 
-function getShareURL(){
+function getShareURL() {
     return `${location.origin}${location.pathname}#${serializeToBase64()}`;
 }
 
