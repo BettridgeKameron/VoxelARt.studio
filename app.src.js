@@ -529,7 +529,7 @@ function main() {
 
     function addLight(x, y, z, targetX, targetY, targetZ) {
         const color = 0xFFFFFF;
-        const intensity = .5;
+        const intensity = .45;
         const light = new THREE.DirectionalLight(color, intensity);
         light.position.set(x, y, z);
         light.target.position.set(targetX, targetY, targetZ);
@@ -543,7 +543,7 @@ function main() {
 
 
     function addAmbientLight() {
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // soft white light
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.35); // soft white light
         scene.add(ambientLight);
     }
     addAmbientLight();
