@@ -215,3 +215,17 @@ body {
 #bottomContent {
     margin-bottom: 1%;
 }
+
+.btn-icon {
+    background: none;
+    border: none;
+    padding: 0;
+}
+.icon-button {
+    padding: 0.5rem;
+}
+
+input[type="radio"][name="voxel"]:checked + label {
+    outline: none;
+    box-shadow: none;
+}

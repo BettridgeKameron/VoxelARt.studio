@@ -501,7 +501,8 @@ async function setupARButton(renderer, originalScene, camera) {
 let world;
 
 function main() {
-
+    const undoStack = [];
+    const redoStack = [];
     const canvas = document.querySelector('#c');
     const renderer = new THREE.WebGLRenderer({
         antialias: true,
@@ -708,6 +709,8 @@ function main() {
             updateCellGeometry(x * world.cellSize, y * world.cellSize, z * world.cellSize);
         });
         generatePlane();
+        redoStack.length = 0;
+        undoStack.length = 0;
     
         // Save the reset world state to local storage
         saveWorldState();
@@ -783,27 +786,17 @@ function main() {
     let currentId;
 
     document.querySelectorAll('#ui .tiles input[type=radio][name=voxel]').forEach((elem) => {
-
-        elem.addEventListener('click', allowUncheck);
-
+        elem.addEventListener('click', function() {
+            if (this.id === currentId) {
+                this.checked = false;
+                currentId = undefined;
+                currentVoxel = -1;
+            } else {
+                currentId = this.id;
+                currentVoxel = parseInt(this.value);
+            }
+        });
     });
-
-    function allowUncheck() {
-
-        if (this.id === currentId) {
-
-            this.checked = false;
-            currentId = undefined;
-            currentVoxel = -1;
-
-        } else {
-
-            currentId = this.id;
-            currentVoxel = parseInt(this.value);
-
-        }
-
-    }
 
     function getCanvasRelativePosition(event) {
 
@@ -814,38 +807,59 @@ function main() {
         };
 
     }
-
+    
     function placeVoxel(event) {
         if (currentVoxel === -1) return;
         const pos = getCanvasRelativePosition(event);
         const x = (pos.x / canvas.width) * 2 - 1;
         const y = (pos.y / canvas.height) * -2 + 1; // note we flip Y
-
+    
         const start = new THREE.Vector3();
         const end = new THREE.Vector3();
         start.setFromMatrixPosition(camera.matrixWorld);
         end.set(x, y, 1).unproject(camera);
-
+    
         const intersection = world.intersectRay(start, end);
         if (intersection) {
-
             const voxelId = event.shiftKey ? 0 : currentVoxel;
-            // the intersection point is on the face. That means
-            // the math imprecision could put us on either side of the face.
-            // so go half a normal into the voxel if removing (currentVoxel = 0)
-            // our out of the voxel if adding (currentVoxel  > 0)
             const pos = intersection.position.map((v, ndx) => {
-
                 return v + intersection.normal[ndx] * (voxelId > 0 ? 0.5 : -0.5);
-
             });
+    
+            // Save the current state before making changes
+            undoStack.push(world.serialize());
+            redoStack.length = 0; // Clear the redo stack
+    
+            // Remove the oldest state if the undo stack exceeds the limit
+            if (undoStack.length > 100) {
+                undoStack.shift();
+            }
+    
             world.setVoxel(...pos, voxelId);
             updateVoxelGeometry(...pos);
             requestRenderIfNotRequested();
-
         }
-
     }
+
+    window.undo = function () {
+        if (undoStack.length > 0) {
+            const previousState = undoStack.pop();
+            redoStack.push(world.serialize()); // Save the current state to the redo stack
+            world.deserialize(previousState);
+            loadCells();
+            requestRenderIfNotRequested();
+        }
+    };
+    
+    window.redo = function () {
+        if (redoStack.length > 0) {
+            const nextState = redoStack.pop();
+            undoStack.push(world.serialize()); // Save the current state to the undo stack
+            world.deserialize(nextState);
+            loadCells();
+            requestRenderIfNotRequested();
+        }
+    };
 
     const mouse = {
         x: 0,

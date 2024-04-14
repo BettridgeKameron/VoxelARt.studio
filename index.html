@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voxel ARt Studio</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -13,13 +14,21 @@
     <canvas id="c"></canvas>
     <div id="ui" class="card">
         <div class="card-header">
-            <!-- Corrected button for toggling visibility, using Bootstrap data attributes -->
             <button id="toggleUI" class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#uiContent"
                 aria-expanded="false" aria-controls="uiContent">
                 <span class="hamburger-icon">&#9776;</span>
             </button>
             <h5 class="card-title mb-0">Color Palette</h5>
+            <button class="btn btn-link icon-button" onclick="undo()" title="Undo (Ctrl+Z)"
+                style="float: right; margin-left: 10px;">
+                <i class="bi bi-arrow-counterclockwise fs-4"></i>
+            </button>
+            <button class="btn btn-link icon-button" onclick="redo()" title="Redo (Ctrl+Y)" style="float: right;">
+                <i class="bi bi-arrow-clockwise fs-4"></i>
+            </button>
         </div>
+
+
         <div id="uiContent" class="collapse">
             <div class="card-body">
                 <div class="tiles">
@@ -59,7 +68,7 @@
             style="width:100%; text-align:center;">
             <span id="toggleIcon" style="pointer-events: none;">&#9650;</span> <!-- Unicode up chevron -->
         </button>
-    
+
         <div id="bottomContent" class="collapse">
             <button id="arButtonCustom" class="btn btn-secondary" disabled>AR Incompatible</button>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#qrModal"
@@ -135,6 +144,7 @@
                         <li>Clicking or tapping on a color in the menu will select it. Clicking on the selected color
                             again will deselect it.</li>
                         <li>To erase, select the "erase" color (first one).</li>
+                        <li>Click the arrows next to "Color Palette" to undo and redo.</li>
                         <li>Click the "Export to QR Code" button to generate a QR code for sharing your creation.</li>
                     </ul>
                     <h6>Desktop:</h6>
@@ -144,6 +154,8 @@
                         <li><strong>Zoom:</strong> Mouse wheel scroll.</li>
                         <li><strong>Erase Shortcut:</strong> Shift + click on a voxel to erase when a color is already
                             selected.</li>
+                        <li><strong>Undo Shortcut:</strong> ctrl + z.</li>
+                        <li><strong>Redo Shortcut:</strong> ctrl + y.</li>
                     </ul>
                     <h6>Mobile:</h6>
                     <ul>
@@ -246,6 +258,19 @@
                 resetWorld();
                 var resetModal = bootstrap.Modal.getInstance(document.getElementById('resetConfirmationModal'));
                 resetModal.hide();
+            });
+        });
+        document.addEventListener("keydown", function (event) {
+            if (event.ctrlKey && event.key === 'z') {
+                undo();
+            }
+            if (event.ctrlKey && event.key === 'y') {
+                redo();
+            }
+        });
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll('#ui .tiles input[type=radio][name=voxel]').forEach((elem) => {
+                elem.checked = false;
             });
         });
 
