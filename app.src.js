@@ -287,7 +287,6 @@ class VoxelWorld {
         }, {});
         const customColorLabels = document.querySelectorAll('.custom-color');
         parsed.customColors.forEach((color, index) => {
-            console.log(index, ': ', color);
             customColorLabels[index].dataset.color = color;
             customColorLabels[index].style.backgroundColor = color;
         });
@@ -1069,7 +1068,6 @@ function main() {
         if (world && localStorage.getItem('worldData')) {
             world.deserialize(localStorage.getItem('worldData'));
             // Assume you have a function to update the world display
-            updateWorldDisplay(); // You would define this function based on your application's needs
         }
     });
 

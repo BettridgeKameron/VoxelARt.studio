@@ -27,7 +27,6 @@ body {
 }
 
 #ui .card-title {
-    margin-left: 10px;
     font-size: 18px;
 }
 
@@ -151,7 +150,7 @@ body {
     }
 
     #ui .card-title {
-        font-size: 24px;
+        font-size: 20px;
     }
 
     #ui input[type=radio]+label {
