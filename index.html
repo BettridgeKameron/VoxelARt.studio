@@ -59,11 +59,13 @@
             style="width:100%; text-align:center;">
             <span id="toggleIcon" style="pointer-events: none;">&#9650;</span> <!-- Unicode up chevron -->
         </button>
-
+    
         <div id="bottomContent" class="collapse">
             <button id="arButtonCustom" class="btn btn-secondary" disabled>AR Incompatible</button>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#qrModal"
-                onclick="exportWorldQRCode()">Share Voxel ARt</button>
+                onclick="exportWorldQRCode()">Share ARt</button>
+            <!-- Added Toggle Plane button here -->
+            <button class="btn btn-info" onclick="togglePlane()">Toggle Plane</button>
             <button class="btn btn-danger" data-bs-toggle="modal"
                 data-bs-target="#resetConfirmationModal">Reset</button>
         </div>

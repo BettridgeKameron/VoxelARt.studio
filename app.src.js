@@ -624,6 +624,26 @@ function main() {
 
     }
 
+    function togglePlane() {
+        const planeExists = world.getVoxel(0, 0, 0) !== 0;
+        if (planeExists) {
+            removePlane();
+        } else {
+            generatePlane();
+        }
+    }
+    window.togglePlane = togglePlane;
+    
+    function removePlane() {
+        for (let z = 0; z < cellSize; ++z) {
+            for (let x = 0; x < cellSize; ++x) {
+                world.setVoxel(x, 0, z, 0);
+            }
+        }
+        updateVoxelGeometry(1, 1, 1);
+        saveWorldState(); // Save the updated world state
+    }
+    
     function generatePlane() {
         for (let z = 0; z < cellSize; ++z) {
             for (let x = 0; x < cellSize; ++x) {
@@ -631,8 +651,9 @@ function main() {
             }
         }
         updateVoxelGeometry(1, 1, 1);
+        saveWorldState(); // Save the updated world state
     }
-
+    
     function initializeWorld() {
         // Priority to URL hash
         if (location.hash) {
@@ -665,7 +686,7 @@ function main() {
             }
         }
     }
-
+    
     initializeWorld();
 
     function loadCells() {
